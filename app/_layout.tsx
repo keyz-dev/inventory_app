@@ -1,8 +1,10 @@
+import { runMigrations } from '@/lib/db';
 import { Poppins_400Regular, Poppins_600SemiBold, Poppins_700Bold } from '@expo-google-fonts/poppins';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 import 'react-native-reanimated';
 import '../global.css';
 
@@ -15,6 +17,15 @@ export default function RootLayout() {
     Poppins_600SemiBold,
     Poppins_700Bold,
   });
+
+  // Ensure hooks order is stable across renders
+  useEffect(() => {
+    try {
+      runMigrations();
+    } catch {
+      // In production, surface a non-blocking toast
+    }
+  }, []);
 
   if (!loaded) {
     // Async font loading only occurs in development.

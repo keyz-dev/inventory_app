@@ -1,12 +1,22 @@
 import { Screen } from '@/components/Screen';
-import { ThemedText } from '@/components/ThemedText';
+import { ProductList } from '@/components/products/ProductList';
+import { ProductsFilters } from '@/components/products/ProductsFilters';
+import { useProducts } from '@/hooks/useProducts';
 import React from 'react';
 import { StyleSheet } from 'react-native';
 
 export default function ProductsScreen() {
+  const { products, loading, group, setGroup, search, setSearch, reload } = useProducts();
   return (
     <Screen title="Products">
-      <ThemedText>Add and manage products and sizes.</ThemedText>
+      <ProductsFilters
+        search={search}
+        setSearch={setSearch}
+        group={group}
+        setGroup={setGroup}
+        onApply={reload}
+      />
+      {loading ? null : <ProductList data={products} />}
     </Screen>
   );
 }
@@ -15,7 +25,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    gap: 12,
   },
 });
 

@@ -89,7 +89,7 @@ export default function PinScreen() {
           />
           {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
           <TouchableOpacity style={styles.button} onPress={handleSetupNext}>
-            <ThemedText className="text-white text-lg">Next</ThemedText>
+            <ThemedText lightColor="#fff" darkColor="#fff" className="text-lg">Next</ThemedText>
           </TouchableOpacity>
         </>
       )}
@@ -108,7 +108,7 @@ export default function PinScreen() {
           />
           {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
           <TouchableOpacity style={styles.button} onPress={handleSavePin}>
-            <ThemedText className="text-white text-lg">Save PIN</ThemedText>
+            <ThemedText lightColor="#fff" darkColor="#fff" className="text-lg">Save PIN</ThemedText>
           </TouchableOpacity>
         </>
       )}
@@ -127,7 +127,7 @@ export default function PinScreen() {
           />
           {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
           <TouchableOpacity style={styles.button} onPress={handleUnlock}>
-            <ThemedText className="text-white text-lg">Unlock</ThemedText>
+            <ThemedText lightColor="#fff" darkColor="#fff" className="text-lg">Unlock</ThemedText>
           </TouchableOpacity>
         </>
       )}

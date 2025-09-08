@@ -43,7 +43,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     paddingBottom: 16,
-    gap: 12,
   },
 });
 
