@@ -1,57 +1,65 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarInactiveTintColor: Colors[colorScheme ?? 'light'].tabIconDefault,
         headerShown: false,
+        tabBarLabelStyle: { fontSize: 12 },
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
         tabBarStyle: Platform.select({
           ios: {
-            // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
+            paddingBottom: Math.max(8, insets.bottom),
+            height: 56 + insets.bottom,
           },
-          default: {},
+          default: {
+            height: 56 + insets.bottom,
+            paddingBottom: Math.max(8, insets.bottom),
+          },
         }),
       }}>
       <Tabs.Screen
         name="sell"
         options={{
           title: 'Sell',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="cart.fill" color={color} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="cart" color={color} size={size ?? 24} />,
         }}
       />
       <Tabs.Screen
         name="products"
         options={{
           title: 'Products',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="cube.box.fill" color={color} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="cube" color={color} size={size ?? 24} />,
         }}
       />
       <Tabs.Screen
         name="stock"
         options={{
           title: 'Stock',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="shippingbox.fill" color={color} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="cube-outline" color={color} size={size ?? 24} />,
         }}
       />
       <Tabs.Screen
         name="sync"
         options={{
           title: 'Sync',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="arrow.triangle.2.circlepath" color={color} />,
+          tabBarIcon: ({ color, size }) => <Ionicons name="sync" color={color} size={size ?? 24} />,
         }}
       />
     </Tabs>

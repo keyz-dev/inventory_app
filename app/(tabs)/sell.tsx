@@ -1,14 +1,13 @@
+import { Screen } from '@/components/Screen';
 import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
 import React from 'react';
 import { StyleSheet } from 'react-native';
 
 export default function SellScreen() {
   return (
-    <ThemedView style={styles.container}>
-      <ThemedText className="text-3xl font-extrabold">Sell</ThemedText>
+    <Screen title="Sell">
       <ThemedText className="text-base text-gray-600 dark:text-gray-300">Search categories and add items to cart.</ThemedText>
-    </ThemedView>
+    </Screen>
   );
 }
 
