@@ -1,9 +1,11 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { SafeAreaView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
 const STORAGE_KEY = 'devicePin';
 
@@ -73,97 +75,212 @@ export default function PinScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <ThemedView style={styles.container}>
-      {mode === 'setup' && (
-        <>
-          <ThemedText className="text-3xl font-extrabold">Create PIN</ThemedText>
-          <TextInput
-            value={pin}
-            onChangeText={setPin}
-            keyboardType="number-pad"
-            secureTextEntry
-            maxLength={6}
-            placeholder="Enter new PIN"
-            style={styles.input}
-          />
-          {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
-          <TouchableOpacity style={styles.button} onPress={handleSetupNext}>
-            <ThemedText lightColor="#fff" darkColor="#fff" className="text-lg">Next</ThemedText>
-          </TouchableOpacity>
-        </>
-      )}
+    <LinearGradient
+      colors={['#667eea', '#764ba2']}
+      style={styles.gradient}
+    >
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <View style={styles.iconContainer}>
+              <Ionicons name="storefront" size={48} color="white" />
+            </View>
+            <ThemedText style={styles.title}>Inventory Manager</ThemedText>
+            <ThemedText style={styles.subtitle}>Secure Access</ThemedText>
+          </View>
 
-      {mode === 'confirm' && (
-        <>
-          <ThemedText className="text-3xl font-extrabold">Confirm PIN</ThemedText>
-          <TextInput
-            value={confirmPin}
-            onChangeText={setConfirmPin}
-            keyboardType="number-pad"
-            secureTextEntry
-            maxLength={6}
-            placeholder="Re-enter PIN"
-            style={styles.input}
-          />
-          {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
-          <TouchableOpacity style={styles.button} onPress={handleSavePin}>
-            <ThemedText lightColor="#fff" darkColor="#fff" className="text-lg">Save PIN</ThemedText>
-          </TouchableOpacity>
-        </>
-      )}
+          <View style={styles.formContainer}>
+            {mode === 'setup' && (
+              <>
+                <ThemedText style={styles.formTitle}>Create Your PIN</ThemedText>
+                <ThemedText style={styles.formSubtitle}>Choose a 4-6 digit PIN for security</ThemedText>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="lock-closed" size={20} color="#6b7280" style={styles.inputIcon} />
+                  <TextInput
+                    value={pin}
+                    onChangeText={setPin}
+                    keyboardType="number-pad"
+                    secureTextEntry
+                    maxLength={6}
+                    placeholder="Enter new PIN"
+                    style={styles.input}
+                    placeholderTextColor="#9ca3af"
+                  />
+                </View>
+                {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
+                <TouchableOpacity style={styles.button} onPress={handleSetupNext}>
+                  <ThemedText style={styles.buttonText}>Continue</ThemedText>
+                  <Ionicons name="arrow-forward" size={20} color="white" />
+                </TouchableOpacity>
+              </>
+            )}
 
-      {mode === 'enter' && (
-        <>
-          <ThemedText className="text-3xl font-extrabold">Enter PIN</ThemedText>
-          <TextInput
-            value={pin}
-            onChangeText={setPin}
-            keyboardType="number-pad"
-            secureTextEntry
-            maxLength={6}
-            placeholder="••••"
-            style={styles.input}
-          />
-          {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
-          <TouchableOpacity style={styles.button} onPress={handleUnlock}>
-            <ThemedText lightColor="#fff" darkColor="#fff" className="text-lg">Unlock</ThemedText>
-          </TouchableOpacity>
-        </>
-      )}
-      </ThemedView>
-    </SafeAreaView>
+            {mode === 'confirm' && (
+              <>
+                <ThemedText style={styles.formTitle}>Confirm Your PIN</ThemedText>
+                <ThemedText style={styles.formSubtitle}>Re-enter your PIN to confirm</ThemedText>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="lock-closed" size={20} color="#6b7280" style={styles.inputIcon} />
+                  <TextInput
+                    value={confirmPin}
+                    onChangeText={setConfirmPin}
+                    keyboardType="number-pad"
+                    secureTextEntry
+                    maxLength={6}
+                    placeholder="Re-enter PIN"
+                    style={styles.input}
+                    placeholderTextColor="#9ca3af"
+                  />
+                </View>
+                {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
+                <TouchableOpacity style={styles.button} onPress={handleSavePin}>
+                  <ThemedText style={styles.buttonText}>Save PIN</ThemedText>
+                  <Ionicons name="checkmark" size={20} color="white" />
+                </TouchableOpacity>
+              </>
+            )}
+
+            {mode === 'enter' && (
+              <>
+                <ThemedText style={styles.formTitle}>Welcome Back</ThemedText>
+                <ThemedText style={styles.formSubtitle}>Enter your PIN to access the app</ThemedText>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="lock-closed" size={20} color="#6b7280" style={styles.inputIcon} />
+                  <TextInput
+                    value={pin}
+                    onChangeText={setPin}
+                    keyboardType="number-pad"
+                    secureTextEntry
+                    maxLength={6}
+                    placeholder="Enter PIN"
+                    style={styles.input}
+                    placeholderTextColor="#9ca3af"
+                  />
+                </View>
+                {error ? <ThemedText style={styles.error}>{error}</ThemedText> : null}
+                <TouchableOpacity style={styles.button} onPress={handleUnlock}>
+                  <ThemedText style={styles.buttonText}>Unlock</ThemedText>
+                  <Ionicons name="arrow-forward" size={20} color="white" />
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
   safe: {
     flex: 1,
   },
   container: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-    gap: 16,
+    paddingHorizontal: 32,
   },
-  input: {
-    width: '60%',
-    fontSize: 24,
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+  header: {
+    alignItems: 'center',
+    marginBottom: 48,
+  },
+  iconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: 'white',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.8)',
     textAlign: 'center',
   },
+  formContainer: {
+    backgroundColor: 'white',
+    borderRadius: 24,
+    padding: 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  formTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#1f2937',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  formSubtitle: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: '#e5e7eb',
+  },
+  inputIcon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    fontSize: 18,
+    paddingVertical: 16,
+    color: '#1f2937',
+  },
   button: {
-    backgroundColor: '#111827',
-    paddingVertical: 12,
+    backgroundColor: '#3b82f6',
+    borderRadius: 16,
+    paddingVertical: 16,
     paddingHorizontal: 24,
-    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '600',
+    marginRight: 8,
   },
   error: {
-    color: '#b91c1c',
+    color: '#dc2626',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 16,
+    backgroundColor: '#fef2f2',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#fecaca',
   },
 });
 
