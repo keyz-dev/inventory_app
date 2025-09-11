@@ -8,14 +8,14 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { formatXAF } from '@/constants/Currency';
 import { Colors } from '@/constants/DesignSystem';
 import {
-    getCategoryAnalytics,
-    getHourlySales,
-    getRevenueByPaymentMethod,
-    getSalesAnalytics,
-    getSalesTrend,
-    getStockAnalytics,
-    getTopProducts,
-    TimeRange,
+  getCategoryAnalytics,
+  getHourlySales,
+  getRevenueByPaymentMethod,
+  getSalesAnalytics,
+  getSalesTrend,
+  getStockAnalytics,
+  getTopProducts,
+  TimeRange,
 } from '@/data/analyticsRepo';
 import React, { useEffect, useState } from 'react';
 import { Alert, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -80,7 +80,7 @@ export default function AnalyticsScreen() {
     setRefreshing(false);
   };
 
-  const timeRangeOptions: Array<{ key: TimeRange; label: string }> = [
+  const timeRangeOptions: { key: TimeRange; label: string }[] = [
     { key: 'today', label: 'Today' },
     { key: 'week', label: 'Week' },
     { key: 'month', label: 'Month' },
@@ -292,9 +292,6 @@ const styles = StyleSheet.create({
   timeRangeButton: {
     marginRight: 8,
   },
-  metricsContainer: {
-    padding: 16,
-  },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
@@ -307,7 +304,7 @@ const styles = StyleSheet.create({
   },
   tableContainer: {
     backgroundColor: 'white',
-    margin: 16,
+    marginVertical: 16,
     borderRadius: 16,
     padding: 16,
     shadowColor: '#000',

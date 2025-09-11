@@ -17,7 +17,7 @@ type Props = {
 
 const categories: Category[] = [
   { id: 'all', label: 'All', icon: 'grid', color: '#3b82f6' },
-  { id: 'cosmetics', label: 'Cosmetics', icon: 'sparkles', color: '#ec4899' },
+  { id: 'cosmetics', label: 'Cosmetics', icon: 'sparkles', color: '#8b5cf6' },
   { id: 'pharma', label: 'Pharma', icon: 'medical', color: '#10b981' },
 ];
 
@@ -30,13 +30,12 @@ export function CategoryButtons({ selected, onSelect }: Props) {
           onPress={() => onSelect(cat.id)}
           style={[
             styles.button,
-            { backgroundColor: selected === cat.id ? cat.color : '#f8fafc' },
             selected === cat.id && styles.buttonActive,
           ]}
         >
           <Ionicons
             name={cat.icon as any}
-            size={24}
+            size={20}
             color={selected === cat.id ? 'white' : cat.color}
           />
           <ThemedText
@@ -56,28 +55,27 @@ export function CategoryButtons({ selected, onSelect }: Props) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    paddingHorizontal: 4,
-    marginBottom: 16,
+    gap: 8,
   },
   button: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    marginHorizontal: 4,
-    borderRadius: 16,
-    shadowColor: '#000',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: '#f1f5f9',
+  },
+  buttonActive: {
+    backgroundColor: '#3b82f6',
+    shadowColor: '#3b82f6',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
   },
-  buttonActive: {
-    transform: [{ scale: 1.05 }],
-  },
   label: {
-    marginTop: 6,
-    fontSize: 14,
-    fontWeight: '600',
+    marginTop: 4,
+    fontSize: 13,
+    fontFamily: 'Poppins_600SemiBold',
   },
 });

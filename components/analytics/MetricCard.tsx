@@ -1,7 +1,8 @@
+import { ThemedText } from '@/components/ThemedText';
 import { Colors, Typography } from '@/constants/DesignSystem';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 type MetricCardProps = {
   title: string;
@@ -50,7 +51,7 @@ export function MetricCard({
   return (
     <View style={[styles.container, { backgroundColor }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
+        <ThemedText style={styles.title}>{title}</ThemedText>
         {icon && (
           <View style={[styles.iconContainer, { backgroundColor: iconColor + '20' }]}>
             <Ionicons name={icon} size={20} color={iconColor} />
@@ -58,7 +59,7 @@ export function MetricCard({
         )}
       </View>
       
-      <Text style={styles.value}>{value}</Text>
+      <ThemedText style={styles.value}>{value}</ThemedText>
       
       {change && (
         <View style={styles.changeContainer}>
@@ -67,9 +68,9 @@ export function MetricCard({
             size={14}
             color={getChangeColor()}
           />
-          <Text style={[styles.changeText, { color: getChangeColor() }]}>
+          <ThemedText style={[styles.changeText, { color: getChangeColor() }]}>
             {change.value > 0 ? '+' : ''}{change.value}%
-          </Text>
+          </ThemedText>
         </View>
       )}
     </View>
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: Typography.sizes.sm,
-    fontWeight: Typography.weights.medium,
+    fontFamily: 'Poppins_400Regular',
     color: Colors.neutral[600],
     flex: 1,
   },
@@ -109,7 +110,7 @@ const styles = StyleSheet.create({
   },
   value: {
     fontSize: Typography.sizes['2xl'],
-    fontWeight: Typography.weights.bold,
+    fontFamily: 'Poppins_700Bold',
     color: Colors.neutral[900],
     marginBottom: 4,
   },
@@ -120,6 +121,6 @@ const styles = StyleSheet.create({
   },
   changeText: {
     fontSize: Typography.sizes.sm,
-    fontWeight: Typography.weights.medium,
+    fontFamily: 'Poppins_400Regular',
   },
 });

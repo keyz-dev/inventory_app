@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
   
   // Text styles
   text: {
-    fontWeight: Typography.weights.semibold,
+    fontFamily: 'Poppins_600SemiBold',
     textAlign: 'center',
   },
   primaryText: {

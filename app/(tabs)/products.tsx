@@ -12,7 +12,19 @@ import React, { useState } from 'react';
 import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export default function ProductsScreen() {
-  const { products, loading, group, setGroup, search, setSearch, reload } = useProducts();
+  const { 
+    products, 
+    loading, 
+    loadingMore,
+    group, 
+    setGroup, 
+    search, 
+    setSearch, 
+    reload, 
+    loadMore,
+    hasMore,
+    pagination
+  } = useProducts(true); // Enable pagination
   const [showProductForm, setShowProductForm] = useState(false);
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -113,6 +125,10 @@ export default function ProductsScreen() {
             data={products} 
             onEdit={handleEditProduct}
             onDelete={handleDeleteProduct}
+            onLoadMore={loadMore}
+            hasMore={hasMore}
+            loadingMore={loadingMore}
+            total={pagination.total}
           />
         )}
       </View>

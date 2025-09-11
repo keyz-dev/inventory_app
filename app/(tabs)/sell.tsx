@@ -1,15 +1,18 @@
 import { Screen } from '@/components/Screen';
 import { CategoryButtons } from '@/components/sell/CategoryButtons';
 import { ProductCard } from '@/components/sell/ProductCard';
-import { EnhancedButton } from '@/components/ui/EnhancedButton';
+import { ThemedText } from '@/components/ThemedText';
 import { recordSale } from '@/data/salesRepo';
 import { useProducts } from '@/hooks/useProducts';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, FlatList, StyleSheet, View } from 'react-native';
+import { Alert, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export default function SellScreen() {
-  const { products, reload } = useProducts();
+  const { products, reload, loadMore, loadingMore } = useProducts(true); // Enable pagination
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const router = useRouter();
 
   const filteredProducts = products.filter(product => {
     if (selectedCategory === 'all') return true;
@@ -32,7 +35,7 @@ export default function SellScreen() {
       recordSale(productId, 1);
       reload(); // Refresh the product list
       // Could add haptic feedback here
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Could not record sale. Please try again.');
     }
   };
@@ -50,57 +53,89 @@ export default function SellScreen() {
 
   return (
     <Screen title="Sell">
-      {/* Quick Actions */}
-      <View style={styles.quickActions}>
-        <EnhancedButton
-          title="Search Products"
-          onPress={() => {/* Navigate to search */}}
-          variant="outline"
-          size="sm"
-          icon="search"
-          style={styles.quickActionButton}
-        />
-        <EnhancedButton
-          title="View Cart"
-          onPress={() => {/* Navigate to cart */}}
-          variant="outline"
-          size="sm"
-          icon="cart"
-          style={styles.quickActionButton}
-        />
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <TouchableOpacity 
+          style={styles.searchBar}
+          onPress={() => router.push('/search?context=sell')}
+        >
+          <Ionicons name="search" size={20} color="#9ca3af" />
+          <ThemedText style={styles.searchPlaceholder}>Search products...</ThemedText>
+        </TouchableOpacity>
       </View>
 
-      <CategoryButtons
-        selected={selectedCategory}
-        onSelect={setSelectedCategory}
-      />
+      {/* Category Filters */}
+      <View style={styles.categoryContainer}>
+        <CategoryButtons
+          selected={selectedCategory}
+          onSelect={setSelectedCategory}
+        />
+      </View>
       
+      {/* Products List */}
       <FlatList
         data={filteredProducts}
         keyExtractor={(item) => item.id}
         renderItem={renderProduct}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
+        style={styles.productsList}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          loadingMore ? (
+            <View style={styles.loadingFooter}>
+              <ThemedText style={styles.loadingText}>Loading more products...</ThemedText>
+            </View>
+          ) : null
+        }
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={10}
+        initialNumToRender={20}
+        windowSize={10}
       />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  quickActions: {
+  searchContainer: {
+    paddingVertical: 16,
+    backgroundColor: 'white',
+  },
+  searchBar: {
     flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 12,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
   },
-  quickActionButton: {
+  searchPlaceholder: {
+    color: '#9ca3af',
+    fontSize: 16,
+    fontFamily: 'Poppins_400Regular',
+  },
+  categoryContainer: {
+    paddingBottom: 8,
+    backgroundColor: 'white',
+  },
+  productsList: {
     flex: 1,
+    backgroundColor: '#f8fafc',
   },
   list: {
-    paddingBottom: 24,
+    paddingTop: 8,
+    paddingBottom: 100, // Space for bottom tabs
+  },
+  loadingFooter: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#6b7280',
   },
 });
 

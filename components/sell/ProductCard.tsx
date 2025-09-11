@@ -1,6 +1,7 @@
 import { ThemedText } from '@/components/ThemedText';
 import { formatXAF } from '@/constants/Currency';
 import { ProductVariant } from '@/types/domain';
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
@@ -25,14 +26,16 @@ export function ProductCard({ name, variant, onSell }: Props) {
           <ThemedText style={styles.price}>{formatXAF(variant.priceXaf)}</ThemedText>
         </View>
         
-        <View style={styles.stockSection}>
-          <ThemedText style={[
-            styles.stock,
-            isLowStock && styles.stockLow,
-            isOutOfStock && styles.stockOut
-          ]}>
-            {isOutOfStock ? 'Out of Stock' : `Stock: ${variant.quantity}`}
-          </ThemedText>
+        <View style={styles.rightSection}>
+          <View style={styles.stockContainer}>
+            <ThemedText style={[
+              styles.stock,
+              isLowStock && styles.stockLow,
+              isOutOfStock && styles.stockOut
+            ]}>
+              {isOutOfStock ? 'Out of Stock' : `${variant.quantity} left`}
+            </ThemedText>
+          </View>
           
           <TouchableOpacity
             style={[
@@ -42,12 +45,11 @@ export function ProductCard({ name, variant, onSell }: Props) {
             onPress={onSell}
             disabled={isOutOfStock}
           >
-            <ThemedText style={[
-              styles.sellButtonText,
-              isOutOfStock && styles.sellButtonTextDisabled
-            ]}>
-              -1
-            </ThemedText>
+            <Ionicons 
+              name="remove" 
+              size={20} 
+              color={isOutOfStock ? '#9ca3af' : 'white'} 
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -58,21 +60,17 @@ export function ProductCard({ name, variant, onSell }: Props) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: 'white',
-    borderRadius: 16,
+    borderRadius: 12,
     padding: 16,
-    marginHorizontal: 4,
-    marginBottom: 12,
+    marginBottom: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: '#f1f5f9',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   cardDisabled: {
-    opacity: 0.6,
-    backgroundColor: '#f8fafc',
+    opacity: 0.5,
   },
   content: {
     flexDirection: 'row',
@@ -83,59 +81,56 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   name: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 4,
+    fontSize: 16,
+    fontFamily: 'Poppins_600SemiBold',
+    color: '#1f2937',
+    marginBottom: 2,
   },
   size: {
-    fontSize: 14,
-    color: '#64748b',
+    fontSize: 13,
+    color: '#6b7280',
     marginBottom: 4,
+    fontFamily: 'Poppins_400Regular',
   },
   price: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 15,
+    fontFamily: 'Poppins_600SemiBold',
     color: '#059669',
   },
-  stockSection: {
+  rightSection: {
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  stockContainer: {
     alignItems: 'flex-end',
   },
   stock: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 8,
-    color: '#374151',
+    fontSize: 12,
+    fontFamily: 'Poppins_400Regular',
+    color: '#6b7280',
   },
   stockLow: {
-    color: '#dc2626',
+    color: '#f59e0b',
   },
   stockOut: {
-    color: '#9ca3af',
+    color: '#ef4444',
   },
   sellButton: {
     backgroundColor: '#3b82f6',
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#3b82f6',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 4,
-    elevation: 4,
+    elevation: 3,
   },
   sellButtonDisabled: {
     backgroundColor: '#e5e7eb',
     shadowOpacity: 0,
     elevation: 0,
-  },
-  sellButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  sellButtonTextDisabled: {
-    color: '#9ca3af',
   },
 });

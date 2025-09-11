@@ -20,7 +20,7 @@ export function ProductsFilters({ search, setSearch, group, setGroup, onApply }:
         <Ionicons name="search" size={18} color="#9ca3af" />
         <TextInput
           value={search}
-          onFocus={() => router.push('/search')}
+          onFocus={() => router.push('/search?context=products')}
           onChangeText={setSearch}
           placeholder="Search products"
           style={styles.input}

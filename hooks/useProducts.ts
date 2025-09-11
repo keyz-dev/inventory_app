@@ -1,28 +1,108 @@
-import { listProducts } from '@/data/productsRepo';
+import { listProducts, listProductsLegacy, PaginatedResult, PaginationOptions } from '@/data/productsRepo';
 import { Product } from '@/types/domain';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
-export function useProducts() {
+export function useProducts(usePagination: boolean = false) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const [group, setGroup] = useState<'all' | 'pharma' | 'cosmetics'>('all');
   const [search, setSearch] = useState<string>('');
+  const [pagination, setPagination] = useState<{
+    total: number;
+    hasMore: boolean;
+    nextOffset: number;
+  }>({
+    total: 0,
+    hasMore: false,
+    nextOffset: 0
+  });
 
-  const reload = () => {
-    setLoading(true);
+  const loadProducts = useCallback(async (
+    reset: boolean = true, 
+    options: PaginationOptions = {}
+  ) => {
+    // Smart caching: Don't reload if we already have data and it's not a reset
+    if (!reset && products.length > 0 && !usePagination) {
+      return;
+    }
+
+    if (reset) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+
     try {
-      const data = listProducts(group, search);
-      setProducts(data);
+      if (usePagination) {
+        const result: PaginatedResult<Product> = listProducts(group, search, {
+          limit: 50,
+          offset: reset ? 0 : pagination.nextOffset,
+          ...options
+        });
+
+        if (reset) {
+          setProducts(result.data);
+        } else {
+          setProducts(prev => [...prev, ...result.data]);
+        }
+
+        setPagination({
+          total: result.total,
+          hasMore: result.hasMore,
+          nextOffset: result.nextOffset
+        });
+      } else {
+        // Legacy mode for backward compatibility
+        const data = listProductsLegacy(group, search);
+        setProducts(data);
+        setPagination({
+          total: data.length,
+          hasMore: false,
+          nextOffset: 0
+        });
+      }
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  };
+  }, [group, search, usePagination, pagination.nextOffset, products.length]);
 
-  useEffect(() => {
-    reload();
+  const reload = useCallback(() => {
+    loadProducts(true);
+  }, [loadProducts]);
+
+  const loadMore = useCallback(() => {
+    if (usePagination && pagination.hasMore && !loadingMore) {
+      loadProducts(false);
+    }
+  }, [usePagination, pagination.hasMore, loadingMore, loadProducts]);
+
+  const changeGroup = useCallback((newGroup: 'all' | 'pharma' | 'cosmetics') => {
+    setGroup(newGroup);
   }, []);
 
-  return { products, loading, reload, group, setGroup, search, setSearch };
+  const changeSearch = useCallback((newSearch: string) => {
+    setSearch(newSearch);
+  }, []);
+
+  useEffect(() => {
+    loadProducts(true);
+  }, [group, search]);
+
+  return { 
+    products, 
+    loading, 
+    loadingMore,
+    reload, 
+    loadMore,
+    group, 
+    setGroup: changeGroup, 
+    search, 
+    setSearch: changeSearch,
+    pagination,
+    hasMore: pagination.hasMore
+  };
 }
 
 

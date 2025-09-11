@@ -12,7 +12,7 @@ type ScreenProps = {
 export function Screen({ title, children }: ScreenProps) {
   return (
     <LinearGradient
-      colors={['#f8fafc', '#e2e8f0']}
+      colors={['#ffffff', '#f8fafc']}
       style={styles.gradient}
     >
       <SafeAreaView style={styles.safe}> 
@@ -41,19 +41,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    marginHorizontal: 16,
+    backgroundColor: 'white',
     marginTop: 8,
-    borderRadius: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   headerTitle: {
     textAlign: 'center',

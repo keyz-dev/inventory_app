@@ -1,14 +1,15 @@
+import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/DesignSystem';
 import React from 'react';
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, StyleSheet, View } from 'react-native';
 import { PieChart as RNPieChart } from 'react-native-chart-kit';
 
 type PieChartProps = {
-  data: Array<{
+  data: {
     name: string;
     value: number;
     color: string;
-  }>;
+  }[];
   title: string;
   height?: number;
 };
@@ -19,9 +20,9 @@ export function PieChart({ data, title, height = 220 }: PieChartProps) {
   if (data.length === 0) {
     return (
       <View style={[styles.container, { height }]}>
-        <Text style={styles.title}>{title}</Text>
+        <ThemedText style={styles.title}>{title}</ThemedText>
         <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>No data available</Text>
+          <ThemedText style={styles.emptyText}>No data available</ThemedText>
         </View>
       </View>
     );
@@ -48,7 +49,7 @@ export function PieChart({ data, title, height = 220 }: PieChartProps) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
+      <ThemedText style={styles.title}>{title}</ThemedText>
       <View style={styles.chartContainer}>
         <RNPieChart
           data={chartData}
@@ -79,7 +80,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: 'Poppins_600SemiBold',
     color: Colors.neutral[800],
     marginBottom: 16,
   },
@@ -96,6 +97,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
     color: Colors.neutral[500],
   },
 });

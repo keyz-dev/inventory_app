@@ -1,13 +1,14 @@
+import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/DesignSystem';
 import React from 'react';
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, StyleSheet, View } from 'react-native';
 import { BarChart as RNBarChart } from 'react-native-chart-kit';
 
 type BarChartProps = {
-  data: Array<{
+  data: {
     label: string;
     value: number;
-  }>;
+  }[];
   title: string;
   color?: string;
   height?: number;
@@ -19,9 +20,9 @@ export function BarChart({ data, title, color = Colors.primary[500], height = 22
   if (data.length === 0) {
     return (
       <View style={[styles.container, { height }]}>
-        <Text style={styles.title}>{title}</Text>
+        <ThemedText style={styles.title}>{title}</ThemedText>
         <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>No data available</Text>
+          <ThemedText style={styles.emptyText}>No data available</ThemedText>
         </View>
       </View>
     );
@@ -55,7 +56,7 @@ export function BarChart({ data, title, color = Colors.primary[500], height = 22
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
+      <ThemedText style={styles.title}>{title}</ThemedText>
       <View style={styles.chartContainer}>
         <RNBarChart
           data={chartData}
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: 'Poppins_600SemiBold',
     color: Colors.neutral[800],
     marginBottom: 16,
   },
@@ -105,6 +106,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
+    fontFamily: 'Poppins_400Regular',
     color: Colors.neutral[500],
   },
 });

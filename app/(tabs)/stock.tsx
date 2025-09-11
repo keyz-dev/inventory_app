@@ -185,7 +185,6 @@ export default function StockScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
   },
   summaryCard: {
     backgroundColor: 'white',
