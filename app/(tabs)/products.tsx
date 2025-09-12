@@ -8,7 +8,9 @@ import { createProduct, deleteProduct, updateProduct } from '@/data/productManag
 import { useProducts } from '@/hooks/useProducts';
 import { Product } from '@/types/domain';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from 'expo-router';
+import React, { useCallback, useRef, useState } from 'react';
 import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export default function ProductsScreen() {
@@ -28,6 +30,8 @@ export default function ProductsScreen() {
   const [showProductForm, setShowProductForm] = useState(false);
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [highlightedProductId, setHighlightedProductId] = useState<string | null>(null);
+  const flatListRef = useRef<any>(null);
 
   const handleCreateProduct = (data: any) => {
     try {
@@ -96,6 +100,79 @@ export default function ProductsScreen() {
     }
   };
 
+  // Handle product selection from search
+  useFocusEffect(
+    useCallback(() => {
+      let isProcessing = false;
+      
+      const checkForSelectedProduct = async () => {
+        if (isProcessing) return;
+        
+        try {
+          const selectedData = await AsyncStorage.getItem('selectedProductFromSearch');
+          
+          if (selectedData) {
+            const { product, variant, context } = JSON.parse(selectedData);
+            
+            // Only handle if this is the products context
+            if (context === 'products') {
+              isProcessing = true;
+              
+              // Clear the stored data immediately to prevent multiple processing
+              await AsyncStorage.removeItem('selectedProductFromSearch');
+              
+              // Find the product in the current list
+              const productIndex = products.findIndex(p => p.id === product.id);
+              
+              if (productIndex !== -1) {
+                
+                // Highlight the product immediately
+                setHighlightedProductId(product.id);
+                
+                // Scroll to center the product in the viewport
+                setTimeout(() => {
+                  
+                  // Try scrollToIndex first (more accurate)
+                  try {
+                    flatListRef.current?.scrollToIndex({
+                      index: productIndex,
+                      animated: true,
+                      viewPosition: 0.5, // Center the item in the viewport
+                    });
+                  } catch (error) {
+                    // Fallback to scrollToOffset if scrollToIndex fails
+                    const estimatedItemHeight = 120;
+                    const itemOffset = productIndex * estimatedItemHeight;
+                    const viewportHeight = 600;
+                    const centeredOffset = Math.max(0, itemOffset - (viewportHeight / 2) + (estimatedItemHeight / 2));
+                    
+                    flatListRef.current?.scrollToOffset({
+                      offset: centeredOffset,
+                      animated: true
+                    });
+                  }
+                }, 100);
+                
+                // Remove highlight after 10 seconds
+                setTimeout(() => {
+                  setHighlightedProductId(null);
+                }, 10000);
+              } else {
+              }
+            } else {
+            }
+          } else {
+          }
+        } catch (error) {
+        } finally {
+          isProcessing = false;
+        }
+      };
+
+      checkForSelectedProduct();
+    }, [products])
+  );
+
   return (
     <Screen title="Products">
       <View style={styles.container}>
@@ -122,6 +199,7 @@ export default function ProductsScreen() {
         
         {loading ? null : (
           <ProductList 
+            ref={flatListRef}
             data={products} 
             onEdit={handleEditProduct}
             onDelete={handleDeleteProduct}
@@ -129,6 +207,7 @@ export default function ProductsScreen() {
             hasMore={hasMore}
             loadingMore={loadingMore}
             total={pagination.total}
+            highlightedProductId={highlightedProductId}
           />
         )}
       </View>

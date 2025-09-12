@@ -9,14 +9,19 @@ type Props = {
   name: string;
   variant: ProductVariant;
   onSell: () => void;
+  highlighted?: boolean;
 };
 
-export function ProductCard({ name, variant, onSell }: Props) {
+export function ProductCard({ name, variant, onSell, highlighted = false }: Props) {
   const isLowStock = variant.quantity <= 3;
   const isOutOfStock = variant.quantity === 0;
-
+  
   return (
-    <View style={[styles.card, isOutOfStock && styles.cardDisabled]}>
+    <View style={[
+      styles.card, 
+      isOutOfStock && styles.cardDisabled,
+      highlighted && styles.cardHighlighted
+    ]}>
       <View style={styles.content}>
         <View style={styles.info}>
           <ThemedText style={styles.name}>{name}</ThemedText>
@@ -71,6 +76,16 @@ const styles = StyleSheet.create({
   },
   cardDisabled: {
     opacity: 0.5,
+  },
+  cardHighlighted: {
+    borderWidth: 3,
+    borderColor: '#3b82f6',
+    backgroundColor: '#dbeafe',
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   content: {
     flexDirection: 'row',

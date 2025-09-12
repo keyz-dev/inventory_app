@@ -135,7 +135,7 @@ export function getCategoryAnalytics(timeRange: TimeRange = 'month'): CategoryAn
   );
 }
 
-export function getStockAnalytics(): StockAnalytics {
+export function getStockAnalytics(lowStockThreshold: number = 3): StockAnalytics {
   const result = query<{
     totalProducts: number;
     totalValue: number;
@@ -146,11 +146,12 @@ export function getStockAnalytics(): StockAnalytics {
     `SELECT 
       COUNT(DISTINCT CASE WHEN variantOfId IS NULL THEN id END) as totalProducts,
       COALESCE(SUM(quantity * priceXaf), 0) as totalValue,
-      COUNT(CASE WHEN quantity <= 5 AND quantity > 0 THEN 1 END) as lowStockCount,
+      COUNT(CASE WHEN quantity < ? AND quantity > 0 THEN 1 END) as lowStockCount,
       COUNT(CASE WHEN quantity = 0 THEN 1 END) as outOfStockCount,
       COALESCE(AVG(quantity), 0) as averageStockLevel
     FROM products 
-    WHERE deletedAt IS NULL`
+    WHERE deletedAt IS NULL`,
+    [lowStockThreshold]
   )[0];
 
   return result || {
@@ -162,11 +163,11 @@ export function getStockAnalytics(): StockAnalytics {
   };
 }
 
-export function getRevenueByPaymentMethod(timeRange: TimeRange = 'month'): Array<{
+export function getRevenueByPaymentMethod(timeRange: TimeRange = 'month'): {
   paymentMethod: string;
   revenue: number;
   percentage: number;
-}> {
+}[] {
   const dateFilter = getDateFilter(timeRange);
   
   const results = query<{
@@ -192,11 +193,11 @@ export function getRevenueByPaymentMethod(timeRange: TimeRange = 'month'): Array
   }));
 }
 
-export function getHourlySales(timeRange: TimeRange = 'week'): Array<{
+export function getHourlySales(timeRange: TimeRange = 'week'): {
   hour: number;
   sales: number;
   revenue: number;
-}> {
+}[] {
   const dateFilter = getDateFilter(timeRange);
 
   return query<{

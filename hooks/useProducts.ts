@@ -1,6 +1,6 @@
 import { listProducts, listProductsLegacy, PaginatedResult, PaginationOptions } from '@/data/productsRepo';
 import { Product } from '@/types/domain';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export function useProducts(usePagination: boolean = false) {
   const [products, setProducts] = useState<Product[]>([]);
@@ -17,6 +17,7 @@ export function useProducts(usePagination: boolean = false) {
     hasMore: false,
     nextOffset: 0
   });
+  const paginationRef = useRef(pagination);
 
   const loadProducts = useCallback(async (
     reset: boolean = true, 
@@ -37,7 +38,7 @@ export function useProducts(usePagination: boolean = false) {
       if (usePagination) {
         const result: PaginatedResult<Product> = listProducts(group, search, {
           limit: 50,
-          offset: reset ? 0 : pagination.nextOffset,
+          offset: reset ? 0 : paginationRef.current.nextOffset,
           ...options
         });
 
@@ -47,26 +48,30 @@ export function useProducts(usePagination: boolean = false) {
           setProducts(prev => [...prev, ...result.data]);
         }
 
-        setPagination({
+        const newPagination = {
           total: result.total,
           hasMore: result.hasMore,
           nextOffset: result.nextOffset
-        });
+        };
+        setPagination(newPagination);
+        paginationRef.current = newPagination;
       } else {
         // Legacy mode for backward compatibility
         const data = listProductsLegacy(group, search);
         setProducts(data);
-        setPagination({
+        const newPagination = {
           total: data.length,
           hasMore: false,
           nextOffset: 0
-        });
+        };
+        setPagination(newPagination);
+        paginationRef.current = newPagination;
       }
     } finally {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [group, search, usePagination, pagination.nextOffset, products.length]);
+  }, [group, search, usePagination, products.length]);
 
   const reload = useCallback(() => {
     loadProducts(true);
@@ -85,6 +90,11 @@ export function useProducts(usePagination: boolean = false) {
   const changeSearch = useCallback((newSearch: string) => {
     setSearch(newSearch);
   }, []);
+
+  // Update ref when pagination changes
+  useEffect(() => {
+    paginationRef.current = pagination;
+  }, [pagination]);
 
   useEffect(() => {
     loadProducts(true);

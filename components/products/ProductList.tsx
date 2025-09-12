@@ -2,7 +2,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { formatXAF } from '@/constants/Currency';
 import { Product } from '@/types/domain';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useCallback } from 'react';
+import React, { forwardRef, useCallback } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 type Props = {
@@ -13,20 +13,25 @@ type Props = {
   hasMore?: boolean;
   loadingMore?: boolean;
   total?: number;
+  highlightedProductId?: string | null;
 };
 
-export function ProductList({ 
+export const ProductList = forwardRef<FlatList, Props>(function ProductList({ 
   data, 
   onEdit, 
   onDelete, 
   onLoadMore, 
   hasMore = false, 
   loadingMore = false,
-  total = 0
-}: Props) {
+  total = 0,
+  highlightedProductId = null
+}, ref) {
   
   const renderItem = useCallback(({ item }: { item: Product }) => (
-    <View style={styles.card}>
+    <View style={[
+      styles.card,
+      highlightedProductId === item.id && styles.cardHighlighted
+    ]}>
       <View style={styles.cardHeader}>
         <ThemedText type="subtitle" style={styles.title}>{item.name}</ThemedText>
         <View style={styles.actions}>
@@ -58,7 +63,7 @@ export function ProductList({
         </View>
       ))}
     </View>
-  ), [onEdit, onDelete]);
+  ), [onEdit, onDelete, highlightedProductId]);
 
   const renderFooter = useCallback(() => {
     if (!loadingMore) return null;
@@ -93,6 +98,7 @@ export function ProductList({
 
   return (
     <FlatList
+      ref={ref}
       data={data}
       keyExtractor={keyExtractor}
       renderItem={renderItem}
@@ -109,7 +115,7 @@ export function ProductList({
       windowSize={10}
     />
   );
-}
+});
 
 const styles = StyleSheet.create({
   list: {
@@ -124,6 +130,16 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
     marginBottom: 12,
     backgroundColor: 'white',
+  },
+  cardHighlighted: {
+    borderWidth: 3,
+    borderColor: '#3b82f6',
+    backgroundColor: '#dbeafe',
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   cardHeader: {
     flexDirection: 'row',

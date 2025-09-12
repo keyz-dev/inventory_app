@@ -44,6 +44,10 @@ export const migrations: Migration[] = [
 
       CREATE INDEX IF NOT EXISTS idx_products_variantOf ON products(variantOfId);
       CREATE INDEX IF NOT EXISTS idx_products_category ON products(categoryId);
+      
+      -- Unique constraint: product name + category + size must be unique
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_products_unique_name_category_size 
+      ON products(name, categoryId, sizeLabel) WHERE deletedAt IS NULL;
 
       -- Sales and adjustments
       CREATE TABLE IF NOT EXISTS sales (
@@ -93,23 +97,32 @@ export const migrations: Migration[] = [
         ('cat_perfume', 'Perfumes & Deodorants', 'cat_cosmetics'),
         ('cat_hygiene', 'Hygiene & Antiseptics', 'cat_cosmetics');
 
-      -- Example products
-      -- Parent: Santex soap, with two sizes (children rows hold stock & price)
-      INSERT OR IGNORE INTO products(id, name, priceXaf, quantity, sizeLabel, variantOfId, categoryId, updatedAt, deletedAt)
-      VALUES ('prod_santex_parent', 'Santex soap', NULL, 0, NULL, NULL, 'cat_soap', datetime('now'), NULL);
-
-      INSERT OR IGNORE INTO products(id, name, priceXaf, quantity, sizeLabel, variantOfId, categoryId, updatedAt, deletedAt)
-      VALUES
-        ('prod_santex_large', 'Santex soap', 2100, 3, 'Largest', 'prod_santex_parent', 'cat_soap', datetime('now'), NULL),
-        ('prod_santex_regular', 'Santex soap', 1500, 5, 'Regular', 'prod_santex_parent', 'cat_soap', datetime('now'), NULL);
-
-      -- Single item: Dettol (no sizes)
-      INSERT OR IGNORE INTO products(id, name, priceXaf, quantity, sizeLabel, variantOfId, categoryId, updatedAt, deletedAt)
-      VALUES ('prod_dettol', 'Dettol', 1500, 10, NULL, NULL, 'cat_hygiene', datetime('now'), NULL);
-
       -- Track schema version
       INSERT OR REPLACE INTO meta(key, value) VALUES ('schema_version', '1');
       INSERT OR IGNORE INTO meta(key, value) VALUES ('lastSyncedAt', '');
+    `,
+  },
+  {
+    id: 2,
+    name: 'add_sync_support',
+    up: `
+      -- Sync queue for offline operations
+      CREATE TABLE IF NOT EXISTS sync_queue (
+        id TEXT PRIMARY KEY,
+        entity TEXT NOT NULL,
+        operation TEXT NOT NULL,
+        data TEXT NOT NULL,
+        timestamp TEXT NOT NULL,
+        synced INTEGER NOT NULL DEFAULT 0,
+        retryCount INTEGER NOT NULL DEFAULT 0,
+        lastError TEXT
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_sync_queue_synced ON sync_queue(synced);
+      CREATE INDEX IF NOT EXISTS idx_sync_queue_timestamp ON sync_queue(timestamp);
+
+      -- Update schema version
+      INSERT OR REPLACE INTO meta(key, value) VALUES ('schema_version', '2');
     `,
   },
 ];

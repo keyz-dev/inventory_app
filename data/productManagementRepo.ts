@@ -1,28 +1,58 @@
 import { execute, query } from '@/lib/db';
 import { Product, ProductRow, UUID } from '@/types/domain';
 
+// Helper function to check for duplicate products
+function checkForDuplicateProduct(name: string, categoryId: string, sizeLabel: string | null): void {
+  const existingProduct = query<{ id: string; name: string; sizeLabel: string | null }>(
+    `SELECT id, name, sizeLabel FROM products 
+     WHERE LOWER(name) = LOWER(?) AND categoryId = ? AND sizeLabel = ? AND deletedAt IS NULL`,
+    [name, categoryId, sizeLabel]
+  )[0];
+
+  if (existingProduct) {
+    const sizeText = existingProduct.sizeLabel ? ` (${existingProduct.sizeLabel})` : '';
+    throw new Error(`Product "${existingProduct.name}${sizeText}" already exists in this category`);
+  }
+}
+
 export type CreateProductData = {
   name: string;
   categoryId: string | null;
-  variants: Array<{
+  variants: {
     sizeLabel: string | null;
     priceXaf: number;
     quantity: number;
-  }>;
+  }[];
 };
 
 export type UpdateProductData = {
   name?: string;
   categoryId?: string | null;
-  variants?: Array<{
+  variants?: {
     id?: string; // for existing variants
     sizeLabel: string | null;
     priceXaf: number;
     quantity: number;
-  }>;
+  }[];
 };
 
 export function createProduct(data: CreateProductData): Product {
+  // Validate required fields
+  if (!data.name?.trim()) {
+    throw new Error('Product name is required');
+  }
+  if (!data.categoryId) {
+    throw new Error('Product category is required');
+  }
+  if (!data.variants || data.variants.length === 0) {
+    throw new Error('At least one product variant is required');
+  }
+
+  // Check for duplicates before creating
+  for (const variant of data.variants) {
+    checkForDuplicateProduct(data.name, data.categoryId, variant.sizeLabel || null);
+  }
+
   const productId = `prod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   
   // If only one variant with no size label, create as single product
@@ -176,7 +206,8 @@ function mapRowsToProducts(rows: ProductRow[]): Product[] {
 // Bulk import functions
 export type ImportProductData = {
   name: string;
-  category: string;
+  parentCategory: string;
+  subcategory: string;
   sizeLabel?: string;
   priceXaf: number;
   quantity: number;
@@ -184,38 +215,70 @@ export type ImportProductData = {
 
 export function bulkImportProducts(products: ImportProductData[]): {
   success: number;
-  errors: Array<{ row: number; error: string; data: ImportProductData }>;
+  errors: { row: number; error: string; data: ImportProductData }[];
 } {
-  const errors: Array<{ row: number; error: string; data: ImportProductData }> = [];
+  const errors: { row: number; error: string; data: ImportProductData }[] = [];
   let success = 0;
 
   for (let i = 0; i < products.length; i++) {
     const product = products[i];
     try {
       // Validate required fields
-      if (!product.name || !product.priceXaf || product.quantity < 0) {
-        throw new Error('Missing required fields or invalid data');
+      if (!product.name?.trim()) {
+        throw new Error('Product name is required');
+      }
+      if (!product.parentCategory?.trim()) {
+        throw new Error('Parent category is required');
+      }
+      if (!product.priceXaf || product.priceXaf <= 0) {
+        throw new Error('Valid price is required');
+      }
+      if (product.quantity < 0) {
+        throw new Error('Quantity cannot be negative');
       }
 
-      // Find or create category
-      let categoryId: string | null = null;
-      if (product.category) {
-        const existingCategory = query<{ id: string }>(
-          `SELECT id FROM categories WHERE name = ?`,
-          [product.category]
+      // Find or create parent category first
+      let parentCategoryId: string | null = null;
+      if (product.parentCategory) {
+        const existingParentCategory = query<{ id: string }>(
+          `SELECT id FROM categories WHERE LOWER(name) = LOWER(?) AND parentId IS NULL`,
+          [product.parentCategory]
         )[0];
         
-        if (existingCategory) {
-          categoryId = existingCategory.id;
+        if (existingParentCategory) {
+          parentCategoryId = existingParentCategory.id;
         } else {
-          // Create new category
-          categoryId = `cat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          // Create new parent category
+          parentCategoryId = `cat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
           execute(
             `INSERT INTO categories (id, name, parentId) VALUES (?, ?, NULL)`,
-            [categoryId, product.category]
+            [parentCategoryId, product.parentCategory]
           );
         }
       }
+
+      // Find or create subcategory
+      let categoryId: string | null = null;
+      if (product.subcategory) {
+        const existingSubcategory = query<{ id: string }>(
+          `SELECT id FROM categories WHERE LOWER(name) = LOWER(?) AND parentId = ?`,
+          [product.subcategory, parentCategoryId]
+        )[0];
+        
+        if (existingSubcategory) {
+          categoryId = existingSubcategory.id;
+        } else {
+          // Create new subcategory
+          categoryId = `cat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          execute(
+            `INSERT INTO categories (id, name, parentId) VALUES (?, ?, ?)`,
+            [categoryId, product.subcategory, parentCategoryId]
+          );
+        }
+      }
+
+      // Check for duplicate before creating
+      checkForDuplicateProduct(product.name, categoryId || '', product.sizeLabel || null);
 
       // Create product
       createProduct({
@@ -239,4 +302,21 @@ export function bulkImportProducts(products: ImportProductData[]): {
   }
 
   return { success, errors };
+}
+
+// Database reset functions
+export function clearAllProducts(): void {
+  execute('DELETE FROM products');
+  execute('DELETE FROM sales');
+  execute('DELETE FROM sale_items');
+  execute('DELETE FROM stock_adjustments');
+}
+
+export function resetToCleanState(): void {
+  // Clear all data
+  clearAllProducts();
+  
+  // Reset schema version to force re-migration
+  execute(`DELETE FROM meta WHERE key = 'schema_version'`);
+  execute(`INSERT INTO meta(key, value) VALUES ('schema_version', '0')`);
 }

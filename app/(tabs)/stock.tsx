@@ -6,11 +6,13 @@ import { getLowStockProducts, getStockSummary, recordStockAdjustment } from '@/d
 import { useProducts } from '@/hooks/useProducts';
 import { Product } from '@/types/domain';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useEffect, useState } from 'react';
-import { Alert, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export default function StockScreen() {
-  const { products, reload } = useProducts();
+  const { products, loading, loadingMore, loadMore, reload } = useProducts(true); // Enable pagination
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showAdjustmentForm, setShowAdjustmentForm] = useState(false);
   const [stockSummary, setStockSummary] = useState({
@@ -20,30 +22,53 @@ export default function StockScreen() {
     outOfStockCount: 0,
   });
   const [lowStockProducts, setLowStockProducts] = useState<any[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [highlightedProductId, setHighlightedProductId] = useState<string | null>(null);
+  const router = useRouter();
+  const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {
     loadStockData();
   }, []);
 
+  // Refresh stock data when products change
+  useEffect(() => {
+    loadStockData();
+  }, [products]);
+
   const loadStockData = () => {
     try {
-      const summary = getStockSummary();
+      const summary = getStockSummary(3);
+      console.log('Stock summary loaded:', summary);
       setStockSummary(summary);
       
-      const lowStock = getLowStockProducts(5);
+      const lowStock = getLowStockProducts(3);
       setLowStockProducts(lowStock);
     } catch (error) {
       console.error('Error loading stock data:', error);
     }
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await reload(); // Reload products
+      loadStockData(); // Reload stock summary and low stock data
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const handleAdjustStock = (productId: string, delta: number, reason: string) => {
     try {
+      console.log('Adjusting stock for product:', productId, 'delta:', delta, 'reason:', reason);
       recordStockAdjustment(productId, delta, reason);
+      console.log('Stock adjustment recorded, reloading data...');
       reload();
       loadStockData();
       Alert.alert('Success', 'Stock adjusted successfully');
     } catch (error) {
+      console.error('Stock adjustment error:', error);
       Alert.alert('Error', error instanceof Error ? error.message : 'Failed to adjust stock');
     }
   };
@@ -53,42 +78,137 @@ export default function StockScreen() {
     setShowAdjustmentForm(true);
   };
 
-  const renderProduct = ({ item }: { item: Product }) => {
-    return item.variants.map((variant) => (
-      <View key={variant.id} style={styles.productCard}>
-        <View style={styles.productInfo}>
-          <ThemedText style={styles.productName}>{item.name}</ThemedText>
-          {variant.sizeLabel && (
-            <ThemedText style={styles.sizeLabel}>{variant.sizeLabel}</ThemedText>
-          )}
-          <ThemedText style={styles.price}>{formatXAF(variant.priceXaf)}</ThemedText>
-        </View>
+  // Handle product selection from search
+  useFocusEffect(
+    useCallback(() => {
+      let isProcessing = false;
+      
+      const checkForSelectedProduct = async () => {
+        if (isProcessing) return;
         
-        <View style={styles.stockInfo}>
-          <View style={[
-            styles.stockBadge,
-            variant.quantity === 0 && styles.stockBadgeOut,
-            variant.quantity > 0 && variant.quantity <= 5 && styles.stockBadgeLow
-          ]}>
-            <ThemedText style={[
-              styles.stockText,
-              variant.quantity === 0 && styles.stockTextOut,
-              variant.quantity > 0 && variant.quantity <= 5 && styles.stockTextLow
-            ]}>
-              {variant.quantity} units
-            </ThemedText>
-          </View>
+        try {
+          const selectedData = await AsyncStorage.getItem('selectedProductFromSearch');
+          console.log('Stock page: Retrieved data:', selectedData);
           
-          <TouchableOpacity
-            style={styles.adjustButton}
-            onPress={() => openAdjustmentForm(item)}
-          >
-            <Ionicons name="create-outline" size={16} color="#3b82f6" />
-            <ThemedText style={styles.adjustButtonText}>Adjust</ThemedText>
-          </TouchableOpacity>
-        </View>
+          if (selectedData) {
+            const { product, variant, context } = JSON.parse(selectedData);
+            console.log('Stock page: Parsed data:', { product: product.name, variant, context });
+            
+            // Only handle if this is the stock context
+            if (context === 'stock') {
+              console.log('Stock page: Context matches, processing...');
+              isProcessing = true;
+              
+              // Clear the stored data immediately to prevent multiple processing
+              await AsyncStorage.removeItem('selectedProductFromSearch');
+              
+              // Find the product in the current list
+              const productIndex = products.findIndex(p => p.id === product.id);
+              console.log('Stock page: Product index:', productIndex);
+              console.log('Stock page: Total products:', products.length);
+              
+              if (productIndex !== -1) {
+                console.log('Stock page: Product found, highlighting and scrolling...');
+                
+                // Highlight the product immediately
+                setHighlightedProductId(variant.id);
+                console.log('Stock page: Highlighted product ID set to:', variant.id);
+                
+                // Scroll to center the product in the viewport
+                setTimeout(() => {
+                  console.log('Stock page: Centering product at index:', productIndex);
+                  
+                  // Try scrollToIndex first (more accurate)
+                  try {
+                    flatListRef.current?.scrollToIndex({
+                      index: productIndex,
+                      animated: true,
+                      viewPosition: 0.5, // Center the item in the viewport
+                    });
+                  } catch {
+                    // Fallback to scrollToOffset if scrollToIndex fails
+                    console.log('Stock page: scrollToIndex failed, using scrollToOffset');
+                    const estimatedItemHeight = 100;
+                    const itemOffset = productIndex * estimatedItemHeight;
+                    const viewportHeight = 600;
+                    const centeredOffset = Math.max(0, itemOffset - (viewportHeight / 2) + (estimatedItemHeight / 2));
+                    
+                    flatListRef.current?.scrollToOffset({
+                      offset: centeredOffset,
+                      animated: true
+                    });
+                  }
+                }, 100);
+                
+                // Remove highlight after 10 seconds
+                setTimeout(() => {
+                  setHighlightedProductId(null);
+                  console.log('Stock page: Highlight removed');
+                }, 10000);
+              } else {
+                console.log('Stock page: Product not found in products list');
+                console.log('Stock page: Available product IDs:', products.map(p => p.id));
+              }
+            } else {
+              console.log('Stock page: Context does not match, ignoring');
+            }
+          } else {
+            console.log('Stock page: No selected data found');
+          }
+        } catch (error) {
+          console.error('Stock page: Error handling selected product:', error);
+        } finally {
+          isProcessing = false;
+        }
+      };
+
+      checkForSelectedProduct();
+    }, [products])
+  );
+
+  const renderProduct = ({ item }: { item: Product }) => {
+    return (
+      <View>
+        {item.variants.map((variant) => (
+          <View key={variant.id} style={[
+            styles.productCard,
+            highlightedProductId === variant.id && styles.productCardHighlighted
+          ]}>
+            <View style={styles.productInfo}>
+              <ThemedText style={styles.productName}>{item.name}</ThemedText>
+              {variant.sizeLabel && (
+                <ThemedText style={styles.sizeLabel}>{variant.sizeLabel}</ThemedText>
+              )}
+              <ThemedText style={styles.price}>{formatXAF(variant.priceXaf)}</ThemedText>
+            </View>
+            
+            <View style={styles.stockInfo}>
+              <View style={[
+                styles.stockBadge,
+                variant.quantity === 0 && styles.stockBadgeOut,
+                variant.quantity > 0 && variant.quantity < 3 && styles.stockBadgeLow
+              ]}>
+                <ThemedText style={[
+                  styles.stockText,
+                  variant.quantity === 0 && styles.stockTextOut,
+                  variant.quantity > 0 && variant.quantity < 3 && styles.stockTextLow
+                ]}>
+                  {variant.quantity} units
+                </ThemedText>
+              </View>
+              
+              <TouchableOpacity
+                style={styles.adjustButton}
+                onPress={() => openAdjustmentForm(item)}
+              >
+                <Ionicons name="create-outline" size={16} color="#3b82f6" />
+                <ThemedText style={styles.adjustButtonText}>Adjust</ThemedText>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ))}
       </View>
-    ));
+    );
   };
 
   const renderLowStockItem = ({ item }: { item: any }) => (
@@ -116,6 +236,16 @@ export default function StockScreen() {
   return (
     <Screen title="Stock Management">
       <View style={styles.container}>
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <TouchableOpacity 
+            style={styles.searchBar}
+            onPress={() => router.push('/search?context=stock')}
+          >
+            <Ionicons name="search" size={20} color="#9ca3af" />
+            <ThemedText style={styles.searchPlaceholder}>Search products...</ThemedText>
+          </TouchableOpacity>
+        </View>
         {/* Stock Summary */}
         <View style={styles.summaryCard}>
           <ThemedText type="subtitle" style={styles.summaryTitle}>Stock Summary</ThemedText>
@@ -162,13 +292,39 @@ export default function StockScreen() {
         {/* All Products */}
         <View style={styles.productsSection}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>All Products</ThemedText>
-          <FlatList
-            data={products}
-            keyExtractor={(item) => item.id}
-            renderItem={renderProduct}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.productsList}
-          />
+          {loading && products.length === 0 ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#3b82f6" />
+              <ThemedText style={styles.loadingText}>Loading products...</ThemedText>
+            </View>
+          ) : (
+            <FlatList
+              ref={flatListRef}
+              data={products}
+              keyExtractor={(item) => item.id}
+              renderItem={renderProduct}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.productsList}
+              onEndReached={loadMore}
+              onEndReachedThreshold={0.1}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  colors={['#3b82f6']}
+                  tintColor="#3b82f6"
+                />
+              }
+              ListFooterComponent={() => (
+                loadingMore ? (
+                  <View style={styles.loadingMoreContainer}>
+                    <ActivityIndicator size="small" color="#3b82f6" />
+                    <ThemedText style={styles.loadingMoreText}>Loading more...</ThemedText>
+                  </View>
+                ) : null
+              )}
+            />
+          )}
         </View>
       </View>
 
@@ -185,6 +341,25 @@ export default function StockScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  searchContainer: {
+    paddingVertical: 16,
+    backgroundColor: 'white',
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 12,
+    marginHorizontal: 16,
+  },
+  searchPlaceholder: {
+    color: '#9ca3af',
+    fontSize: 16,
+    fontFamily: 'Poppins_400Regular',
   },
   summaryCard: {
     backgroundColor: 'white',
@@ -303,6 +478,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  productCardHighlighted: {
+    borderWidth: 3,
+    borderColor: '#3b82f6',
+    backgroundColor: '#dbeafe',
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
   productInfo: {
     flex: 1,
   },
@@ -362,6 +547,28 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: '#3b82f6',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#6b7280',
+  },
+  loadingMoreContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  loadingMoreText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#6b7280',
   },
 });
 

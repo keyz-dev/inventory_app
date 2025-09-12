@@ -1,5 +1,6 @@
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ImportProductData, bulkImportProducts } from '@/data/productManagementRepo';
 import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
@@ -7,6 +8,7 @@ import * as FileSystem from 'expo-file-system';
 import Papa from 'papaparse';
 import React, { useState } from 'react';
 import { Alert, Modal, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import * as XLSX from 'xlsx';
 
 type Props = {
   visible: boolean;
@@ -22,45 +24,116 @@ export function BulkImportModal({ visible, onClose, onImportComplete }: Props) {
   const handleFilePick = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
-        type: ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+        type: '*/*', // Allow all file types
         copyToCacheDirectory: true,
+        multiple: false,
       });
 
       if (!result.canceled && result.assets[0]) {
         const file = result.assets[0];
+        console.log('Selected file:', file.name, 'Type:', file.mimeType, 'Size:', file.size);
         setSelectedFile(file);
         await parseFile(file);
       }
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to pick file');
     }
   };
 
   const parseFile = async (file: any) => {
     try {
-      const content = await FileSystem.readAsStringAsync(file.uri);
+      const fileExtension = file.name?.toLowerCase().split('.').pop();
       
-      // Parse CSV content
-      Papa.parse(content, {
-        header: true,
-        skipEmptyLines: true,
-        complete: (results) => {
-          const parsedData = results.data.map((row: any, index: number) => ({
-            name: row.name || row.product_name || row['Product Name'] || '',
-            category: row.category || row.category_name || row['Category'] || '',
-            sizeLabel: row.size || row.size_label || row['Size'] || '',
-            priceXaf: parseFloat(row.price || row.price_xaf || row['Price (XAF)'] || '0'),
-            quantity: parseInt(row.quantity || row.qty || row['Quantity'] || '0'),
-          }));
+      // Validate file extension
+      if (!fileExtension || !['csv', 'xlsx', 'xls'].includes(fileExtension)) {
+        Alert.alert('Error', 'Please select a CSV or Excel file (.csv, .xlsx, .xls)');
+        return;
+      }
+      
+      if (fileExtension === 'csv') {
+        // Parse CSV file
+        const content = await FileSystem.readAsStringAsync(file.uri);
+        
+        Papa.parse(content, {
+          header: true,
+          skipEmptyLines: true,
+          complete: (results) => {
+            const parsedData = results.data.map((row: any, index: number) => ({
+              name: row.name || row.product_name || row['Product Name'] || '',
+              parentCategory: row.parent_category || row.parentCategory || row['Parent Category'] || '',
+              subcategory: row.subcategory || row.sub_category || row['Subcategory'] || row.category || row.category_name || row['Category'] || '',
+              sizeLabel: row.size || row.size_label || row['Size'] || '',
+              priceXaf: parseFloat(row.price || row.price_xaf || row['Price (XAF)'] || '0'),
+              quantity: parseInt(row.quantity || row.qty || row['Quantity'] || '0'),
+            }));
 
-          setPreviewData(parsedData);
-        },
-        error: (error) => {
-          Alert.alert('Error', 'Failed to parse CSV file');
-        },
-      });
+            setPreviewData(parsedData);
+          },
+          error: (error: any) => {
+            Alert.alert('Error', 'Failed to parse CSV file');
+          },
+        });
+      } else if (fileExtension === 'xlsx' || fileExtension === 'xls') {
+        // Parse Excel file
+        const fileUri = file.uri;
+        const base64 = await FileSystem.readAsStringAsync(fileUri, { encoding: FileSystem.EncodingType.Base64 });
+        const workbook = XLSX.read(base64, { type: 'base64' });
+        
+        // Get all sheet names
+        const sheetNames = workbook.SheetNames;
+        let allData: any[] = [];
+        
+        // Process each sheet
+        for (const sheetName of sheetNames) {
+          const worksheet = workbook.Sheets[sheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+          
+          if (jsonData.length > 0) {
+            // Get headers from first row
+            const headers = jsonData[0] as string[];
+            const dataRows = jsonData.slice(1) as any[][];
+            
+            // Map data rows to objects
+            const sheetData = dataRows.map((row: any[]) => {
+              const rowObj: any = {};
+              headers.forEach((header: string, index: number) => {
+                rowObj[header] = row[index] || '';
+              });
+              return rowObj;
+            });
+            
+            // Determine parent category based on sheet name
+            const parentCategory = sheetName.toLowerCase().includes('pharma') ? 'Pharmaceuticals' : 'Cosmetics';
+            
+            // Add parent category to each row if not present
+            const processedData = sheetData.map(row => ({
+              ...row,
+              parent_category: row.parent_category || parentCategory
+            }));
+            
+            allData = allData.concat(processedData);
+          }
+        }
+        
+        // Parse the combined data
+        const parsedData = allData.map((row: any, index: number) => ({
+          name: row.name || row.product_name || row['Product Name'] || '',
+          parentCategory: row.parent_category || row.parentCategory || row['Parent Category'] || '',
+          subcategory: row.subcategory || row.sub_category || row['Subcategory'] || row.category || row.category_name || row['Category'] || '',
+          sizeLabel: row.size || row.size_label || row['Size'] || '',
+          priceXaf: parseFloat(row.price || row.price_xaf || row['Price (XAF)'] || '0'),
+          quantity: parseInt(row.quantity || row.qty || row['Quantity'] || '0'),
+        }));
+
+        console.log('Parsed data count:', parsedData.length);
+        console.log('First few rows:', parsedData.slice(0, 3));
+        setPreviewData(parsedData);
+      } else {
+        Alert.alert('Error', 'Unsupported file format. Please use CSV or Excel files.');
+      }
     } catch (error) {
-      Alert.alert('Error', 'Failed to read file');
+      console.error('Parse error:', error);
+      Alert.alert('Error', 'Failed to parse file. Please check the file format and try again.');
     }
   };
 
@@ -72,6 +145,9 @@ export function BulkImportModal({ visible, onClose, onImportComplete }: Props) {
 
     setIsProcessing(true);
     try {
+      // Simulate a small delay to show the loading state
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const result = bulkImportProducts(previewData);
       onImportComplete(result);
       
@@ -85,10 +161,11 @@ export function BulkImportModal({ visible, onClose, onImportComplete }: Props) {
           ]
         );
       } else {
-        Alert.alert('Success', `Successfully imported ${result.success} products`);
-        handleClose();
+        Alert.alert('Success', `Successfully imported ${result.success} products`, [
+          { text: 'OK', onPress: handleClose }
+        ]);
       }
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to import products');
     } finally {
       setIsProcessing(false);
@@ -108,21 +185,37 @@ export function BulkImportModal({ visible, onClose, onImportComplete }: Props) {
   };
 
   const downloadTemplate = () => {
-    const template = 'name,category,size,price,quantity\n' +
-      'Santex Soap,Soaps & Body Wash,Large,2100,10\n' +
-      'Dettol,Hygiene & Antiseptics,,1500,5\n' +
-      'Body Lotion,Lotions & Creams,Medium,3000,8';
+    const template = 'name,parent_category,subcategory,size,price,quantity\n' +
+      'Santex Soap,Cosmetics,Soaps & Body Wash,Large,2100,10\n' +
+      'Dettol,Cosmetics,Hygiene & Antiseptics,,1500,5\n' +
+      'Body Lotion,Cosmetics,Lotions & Creams,Medium,3000,8\n' +
+      'Paracetamol,Pharmaceuticals,Medications,,500,20';
+    
+    const instructions = 'Template (case-insensitive):\n\n' + template + '\n\nRequired fields:\n• name: Product name\n• parent_category: Must be "Cosmetics" or "Pharmaceuticals"\n• subcategory: Category under parent\n• price: Price in XAF\n• quantity: Stock quantity\n\nNote: Category names are case-insensitive.';
     
     // In a real app, you'd save this to downloads or share it
-    Alert.alert('Template', 'Copy this CSV format:\n\n' + template);
+    Alert.alert('CSV Template', instructions);
   };
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
       <ThemedView style={styles.container}>
+        {/* Loading Overlay */}
+        {isProcessing && (
+          <View style={styles.loadingOverlay}>
+            <View style={styles.loadingContainer}>
+              <LoadingSpinner size="lg" color="#3b82f6" />
+              <ThemedText style={styles.loadingTitle}>Importing Products</ThemedText>
+              <ThemedText style={styles.loadingSubtitle}>
+                Please wait while we process your data...
+              </ThemedText>
+            </View>
+          </View>
+        )}
+
         <View style={styles.header}>
-          <TouchableOpacity onPress={handleClose}>
-            <Ionicons name="close" size={24} color="#374151" />
+          <TouchableOpacity onPress={handleClose} disabled={isProcessing}>
+            <Ionicons name="close" size={24} color={isProcessing ? "#9ca3af" : "#374151"} />
           </TouchableOpacity>
           <ThemedText type="subtitle">Bulk Import Products</ThemedText>
           <View style={{ width: 24 }} />
@@ -173,7 +266,8 @@ export function BulkImportModal({ visible, onClose, onImportComplete }: Props) {
                   <View style={styles.previewTable}>
                     <View style={styles.previewHeader}>
                       <ThemedText style={styles.previewHeaderText}>Name</ThemedText>
-                      <ThemedText style={styles.previewHeaderText}>Category</ThemedText>
+                      <ThemedText style={styles.previewHeaderText}>Parent</ThemedText>
+                      <ThemedText style={styles.previewHeaderText}>Subcategory</ThemedText>
                       <ThemedText style={styles.previewHeaderText}>Size</ThemedText>
                       <ThemedText style={styles.previewHeaderText}>Price</ThemedText>
                       <ThemedText style={styles.previewHeaderText}>Qty</ThemedText>
@@ -181,7 +275,8 @@ export function BulkImportModal({ visible, onClose, onImportComplete }: Props) {
                     {previewData.slice(0, 10).map((item, index) => (
                       <View key={index} style={styles.previewRow}>
                         <ThemedText style={styles.previewCell}>{item.name}</ThemedText>
-                        <ThemedText style={styles.previewCell}>{item.category}</ThemedText>
+                        <ThemedText style={styles.previewCell}>{item.parentCategory}</ThemedText>
+                        <ThemedText style={styles.previewCell}>{item.subcategory}</ThemedText>
                         <ThemedText style={styles.previewCell}>{item.sizeLabel || '-'}</ThemedText>
                         <ThemedText style={styles.previewCell}>{item.priceXaf}</ThemedText>
                         <ThemedText style={styles.previewCell}>{item.quantity}</ThemedText>
@@ -189,6 +284,7 @@ export function BulkImportModal({ visible, onClose, onImportComplete }: Props) {
                     ))}
                     {previewData.length > 10 && (
                       <View style={styles.previewRow}>
+                        <ThemedText style={styles.previewCell}>...</ThemedText>
                         <ThemedText style={styles.previewCell}>...</ThemedText>
                         <ThemedText style={styles.previewCell}>...</ThemedText>
                         <ThemedText style={styles.previewCell}>...</ThemedText>
@@ -316,7 +412,7 @@ const styles = StyleSheet.create({
     borderColor: '#e5e7eb',
   },
   previewTable: {
-    minWidth: 500,
+    minWidth: 600,
   },
   previewHeader: {
     flexDirection: 'row',
@@ -382,5 +478,41 @@ const styles = StyleSheet.create({
   },
   importButtonTextDisabled: {
     color: '#9ca3af',
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 1000,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingContainer: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 32,
+    alignItems: 'center',
+    minWidth: 280,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  loadingTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  loadingSubtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

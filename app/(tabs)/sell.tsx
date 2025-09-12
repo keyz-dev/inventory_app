@@ -5,14 +5,17 @@ import { ThemedText } from '@/components/ThemedText';
 import { recordSale } from '@/data/salesRepo';
 import { useProducts } from '@/hooks/useProducts';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useRef, useState } from 'react';
 import { Alert, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export default function SellScreen() {
   const { products, reload, loadMore, loadingMore } = useProducts(true); // Enable pagination
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [highlightedProductId, setHighlightedProductId] = useState<string | null>(null);
   const router = useRouter();
+  const flatListRef = useRef<FlatList>(null);
 
   const filteredProducts = products.filter(product => {
     if (selectedCategory === 'all') return true;
@@ -40,15 +43,103 @@ export default function SellScreen() {
     }
   };
 
+  // Handle product selection from search
+  useFocusEffect(
+    useCallback(() => {
+      let isProcessing = false;
+      
+      const checkForSelectedProduct = async () => {
+        if (isProcessing) return;
+        
+        try {
+          const selectedData = await AsyncStorage.getItem('selectedProductFromSearch');
+          
+          if (selectedData) {
+            const { product, variant, context } = JSON.parse(selectedData);
+            
+            // Only handle if this is the sell context
+            if (context === 'sell') {
+              isProcessing = true;
+              
+              // Clear the stored data immediately to prevent multiple processing
+              await AsyncStorage.removeItem('selectedProductFromSearch');
+              
+              // Find the product in the current list
+              const productIndex = filteredProducts.findIndex(p => p.id === product.id);
+              
+              if (productIndex !== -1) {
+                
+                // Find the matching variant in the product list
+                const matchingVariant = filteredProducts[productIndex].variants.find(v => 
+                  v.sizeLabel === variant.sizeLabel && v.priceXaf === variant.priceXaf
+                );
+                
+                if (matchingVariant) {
+                  // Highlight the product immediately
+                  setHighlightedProductId(matchingVariant.id);
+                } else {
+                  // Fallback to search variant ID
+                  setHighlightedProductId(variant.id);
+                }
+                
+                // Scroll to center the product in the viewport
+                setTimeout(() => {
+                  
+                  // Try scrollToIndex first (more accurate)
+                  try {
+                    flatListRef.current?.scrollToIndex({
+                      index: productIndex,
+                      animated: true,
+                      viewPosition: 0.5, // Center the item in the viewport
+                    });
+                  } catch {
+                    // Fallback to scrollToOffset if scrollToIndex fails
+                    const estimatedItemHeight = 80;
+                    const itemOffset = productIndex * estimatedItemHeight;
+                    const viewportHeight = 600;
+                    const centeredOffset = Math.max(0, itemOffset - (viewportHeight / 2) + (estimatedItemHeight / 2));
+                    
+                    flatListRef.current?.scrollToOffset({
+                      offset: centeredOffset,
+                      animated: true
+                    });
+                  }
+                }, 100);
+                
+                // Remove highlight after 10 seconds
+                setTimeout(() => {
+                  setHighlightedProductId(null);
+                }, 10000);
+              } else {
+              }
+            } else {
+            }
+          } else {
+          }
+        } catch (error) {
+        } finally {
+          isProcessing = false;
+        }
+      };
+
+      checkForSelectedProduct();
+    }, [filteredProducts])
+  );
+
   const renderProduct = ({ item }: any) => {
-    return item.variants.map((variant: any) => (
-      <ProductCard
-        key={variant.id}
-        name={item.name}
-        variant={variant}
-        onSell={() => handleSell(variant.id)}
-      />
-    ));
+    return item.variants.map((variant: any) => {
+      const isHighlighted = highlightedProductId === variant.id;
+      
+      return (
+        <ProductCard
+          key={variant.id}
+          name={item.name}
+          variant={variant}
+          onSell={() => handleSell(variant.id)}
+          highlighted={isHighlighted}
+        />
+      );
+    });
   };
 
   return (
@@ -74,6 +165,7 @@ export default function SellScreen() {
       
       {/* Products List */}
       <FlatList
+        ref={flatListRef}
         data={filteredProducts}
         keyExtractor={(item) => item.id}
         renderItem={renderProduct}

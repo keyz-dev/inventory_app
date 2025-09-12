@@ -52,7 +52,7 @@ export default function AnalyticsScreen() {
         hourly,
       ] = await Promise.all([
         getSalesAnalytics(timeRange),
-        getStockAnalytics(),
+        getStockAnalytics(3),
         getSalesTrend(timeRange),
         getTopProducts(5, timeRange),
         getCategoryAnalytics(timeRange),

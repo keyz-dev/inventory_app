@@ -48,11 +48,18 @@ export function runMigrations(): void {
 
 export function execute(sql: string, params: any[] = []): void {
   const db = getDb();
-  if (!params || params.length === 0) {
-    db.execSync(sql);
-  } else {
-    // Fallback: use getAllSync to prepare and run a statement with params
-    db.getAllSync(sql, params as any);
+  try {
+    if (!params || params.length === 0) {
+      db.execSync(sql);
+    } else {
+      // Use runSync for parameterized statements
+      db.runSync(sql, params as any);
+    }
+  } catch (error) {
+    console.error('Database execute error:', error);
+    console.error('SQL:', sql);
+    console.error('Params:', params);
+    throw error;
   }
 }
 

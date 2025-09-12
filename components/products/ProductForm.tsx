@@ -81,6 +81,11 @@ export function ProductForm({ visible, product, onClose, onSave }: Props) {
       return;
     }
 
+    if (!categoryId) {
+      Alert.alert('Error', 'Please select a category');
+      return;
+    }
+
     if (variants.length === 0) {
       Alert.alert('Error', 'Please add at least one variant');
       return;

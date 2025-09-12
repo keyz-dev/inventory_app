@@ -1,10 +1,7 @@
 import { Screen } from '@/components/Screen';
-import { StockAdjustmentForm } from '@/components/stock/StockAdjustmentForm';
 import { ThemedText } from '@/components/ThemedText';
 import { formatXAF } from '@/constants/Currency';
 import { fuzzySearchProducts, getProductById, SearchResult } from '@/data/productsRepo';
-import { recordStockAdjustment } from '@/data/stockRepo';
-import { Product } from '@/types/domain';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -18,8 +15,6 @@ export default function SearchScreen() {
   const { context } = useLocalSearchParams<{ context?: string }>();
   const [query, setQuery] = useState('');
   const [history, setHistory] = useState<string[]>([]);
-  const [showStockAdjustment, setShowStockAdjustment] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -71,21 +66,40 @@ export default function SearchScreen() {
       return;
     }
 
-    // Always open stock adjustment form
-    setSelectedProduct(product);
-    setShowStockAdjustment(true);
-  };
-
-  const handleStockAdjustment = (productId: string, delta: number, reason: string) => {
+    // Store the selected product data first
+    const searchData = {
+      product,
+      variant: item.variant,
+      context
+    };
+    
     try {
-      recordStockAdjustment(productId, delta, reason);
-      Alert.alert('Success', 'Stock adjusted successfully');
-      setShowStockAdjustment(false);
-      setSelectedProduct(null);
+      await AsyncStorage.setItem('selectedProductFromSearch', JSON.stringify(searchData));
     } catch (error) {
-      Alert.alert('Error', error instanceof Error ? error.message : 'Failed to adjust stock');
+      console.error('Error storing search data:', error);
+    }
+    
+    // Return to the calling page using a more reliable method
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      // If we can't go back, navigate to the appropriate tab
+      switch (context) {
+        case 'sell':
+          router.push('/(tabs)/sell');
+          break;
+        case 'products':
+          router.push('/(tabs)/products');
+          break;
+        case 'stock':
+          router.push('/(tabs)/stock');
+          break;
+        default:
+          router.push('/(tabs)/sell');
+      }
     }
   };
+
 
   const renderItem = ({ item }: { item: SearchResult }) => (
     <TouchableOpacity style={styles.row} onPress={() => handleProductSelect(item)}>
@@ -183,7 +197,7 @@ export default function SearchScreen() {
             <View style={styles.noMatchMessage}>
               <Ionicons name="search" size={24} color="#f59e0b" />
               <ThemedText style={styles.noMatchText}>
-                No products found containing "{query.trim()}"
+                No products found containing &quot;{query.trim()}&quot;
               </ThemedText>
               <ThemedText style={styles.suggestionsText}>
                 Here are some suggestions:
@@ -205,22 +219,13 @@ export default function SearchScreen() {
                 No relevant products found
               </ThemedText>
               <ThemedText style={styles.emptyResultsSubtext}>
-                Try searching for: "Dettol", "Santex", "Soap", "Lotion"
+                Try searching for: &quot;Dettol&quot;, &quot;Santex&quot;, &quot;Soap&quot;, &quot;Lotion&quot;
               </ThemedText>
             </View>
           )}
         </View>
       )}
 
-      <StockAdjustmentForm
-        visible={showStockAdjustment}
-        product={selectedProduct}
-        onClose={() => {
-          setShowStockAdjustment(false);
-          setSelectedProduct(null);
-        }}
-        onAdjust={handleStockAdjustment}
-      />
     </Screen>
   );
 }
@@ -242,7 +247,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
     fontSize: 16,
   },
-  empty: {
+  emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingTop: 48,
