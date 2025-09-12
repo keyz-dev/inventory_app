@@ -3,37 +3,34 @@ import { CategoryButtons } from '@/components/sell/CategoryButtons';
 import { ProductCard } from '@/components/sell/ProductCard';
 import { ThemedText } from '@/components/ThemedText';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useCanSell, useUser } from '@/contexts/UserContext';
 import { recordSale } from '@/data/salesRepo';
 import { useProducts } from '@/hooks/useProducts';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useRef, useState } from 'react';
-import { Alert, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 export default function SellScreen() {
-  const { products, reload, loadMore, loadingMore } = useProducts(true); // Enable pagination
+  const { 
+    products, 
+    reload, 
+    loadMore, 
+    loadingMore, 
+    group, 
+    setGroup, 
+    loading 
+  } = useProducts(true); // Enable pagination
   const { showSettings } = useSettings();
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const { currentUser } = useUser();
+  const canSell = useCanSell();
   const [highlightedProductId, setHighlightedProductId] = useState<string | null>(null);
   const router = useRouter();
   const flatListRef = useRef<FlatList>(null);
 
-  const filteredProducts = products.filter(product => {
-    if (selectedCategory === 'all') return true;
-    if (selectedCategory === 'cosmetics') {
-      return product.categoryId === 'cat_cosmetics' || 
-             product.categoryId === 'cat_soap' || 
-             product.categoryId === 'cat_lotion' || 
-             product.categoryId === 'cat_oil' || 
-             product.categoryId === 'cat_perfume' || 
-             product.categoryId === 'cat_hygiene';
-    }
-    if (selectedCategory === 'pharma') {
-      return product.categoryId === 'cat_pharma';
-    }
-    return true;
-  });
+  // Use the group from useProducts hook instead of local state
+  const selectedCategory = group;
 
   const handleSell = (productId: string) => {
     try {
@@ -67,12 +64,12 @@ export default function SellScreen() {
               await AsyncStorage.removeItem('selectedProductFromSearch');
               
               // Find the product in the current list
-              const productIndex = filteredProducts.findIndex(p => p.id === product.id);
+              const productIndex = products.findIndex(p => p.id === product.id);
               
               if (productIndex !== -1) {
                 
                 // Find the matching variant in the product list
-                const matchingVariant = filteredProducts[productIndex].variants.find(v => 
+                const matchingVariant = products[productIndex].variants.find(v => 
                   v.sizeLabel === variant.sizeLabel && v.priceXaf === variant.priceXaf
                 );
                 
@@ -118,14 +115,14 @@ export default function SellScreen() {
             }
           } else {
           }
-        } catch (error) {
+        } catch {
         } finally {
           isProcessing = false;
         }
       };
 
       checkForSelectedProduct();
-    }, [filteredProducts])
+    }, [products])
   );
 
   const renderProduct = ({ item }: any) => {
@@ -144,9 +141,29 @@ export default function SellScreen() {
     });
   };
 
+  // Redirect if user doesn't have permission to sell
+  if (!canSell) {
+    return (
+      <Screen title="Sell" rightHeaderAction={{ icon: 'settings', onPress: showSettings }}>
+        <View style={styles.noAccessContainer}>
+          <Ionicons name="lock-closed" size={64} color="#ef4444" />
+          <ThemedText type="title" style={styles.noAccessTitle}>
+            Access Denied
+          </ThemedText>
+          <ThemedText style={styles.noAccessText}>
+            You don&apos;t have permission to access the sales feature.
+          </ThemedText>
+          <ThemedText style={styles.noAccessSubtext}>
+            Contact your manager for access.
+          </ThemedText>
+        </View>
+      </Screen>
+    );
+  }
+
   return (
     <Screen 
-      title="Sell" 
+      title={`Sell - ${currentUser?.name || 'User'}`}
       rightHeaderAction={{
         icon: 'settings',
         onPress: showSettings
@@ -167,14 +184,14 @@ export default function SellScreen() {
       <View style={styles.categoryContainer}>
         <CategoryButtons
           selected={selectedCategory}
-          onSelect={setSelectedCategory}
+          onSelect={(id: string) => setGroup(id as "all" | "pharma" | "cosmetics")}
         />
       </View>
       
       {/* Products List */}
       <FlatList
         ref={flatListRef}
-        data={filteredProducts}
+        data={products}
         keyExtractor={(item) => item.id}
         renderItem={renderProduct}
         contentContainerStyle={styles.list}
@@ -188,6 +205,23 @@ export default function SellScreen() {
               <ThemedText style={styles.loadingText}>Loading more products...</ThemedText>
             </View>
           ) : null
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            {loading ? (
+              <>
+                <ActivityIndicator size="large" color="#3b82f6" />
+                <ThemedText style={styles.emptyText}>Loading products...</ThemedText>
+              </>
+            ) : (
+              <>
+                <Ionicons name="cube-outline" size={64} color="#9ca3af" />
+                <ThemedText style={styles.emptyText}>
+                  {selectedCategory === 'all' ? "No products found" : `No ${selectedCategory} products found`}
+                </ThemedText>
+              </>
+            )}
+          </View>
         }
         removeClippedSubviews={true}
         maxToRenderPerBatch={10}
@@ -236,6 +270,42 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 14,
     color: '#6b7280',
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 64,
+    paddingHorizontal: 32,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginTop: 16,
+    fontFamily: 'Poppins_400Regular',
+  },
+  noAccessContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+  },
+  noAccessTitle: {
+    marginTop: 16,
+    marginBottom: 8,
+    color: '#ef4444',
+  },
+  noAccessText: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  noAccessSubtext: {
+    fontSize: 14,
+    color: '#9ca3af',
+    textAlign: 'center',
   },
 });
 

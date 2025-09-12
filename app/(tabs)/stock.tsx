@@ -3,6 +3,7 @@ import { StockAdjustmentForm } from '@/components/stock/StockAdjustmentForm';
 import { ThemedText } from '@/components/ThemedText';
 import { formatXAF } from '@/constants/Currency';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useCanAdjustStock, useUser } from '@/contexts/UserContext';
 import { getLowStockProducts, getStockSummary, recordStockAdjustment } from '@/data/stockRepo';
 import { useProducts } from '@/hooks/useProducts';
 import { Product } from '@/types/domain';
@@ -15,6 +16,8 @@ import { ActivityIndicator, Alert, FlatList, RefreshControl, StyleSheet, Touchab
 export default function StockScreen() {
   const { products, loading, loadingMore, loadMore, reload } = useProducts(true); // Enable pagination
   const { showSettings } = useSettings();
+  const { currentUser } = useUser();
+  const canAdjustStock = useCanAdjustStock();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showAdjustmentForm, setShowAdjustmentForm] = useState(false);
   const [stockSummary, setStockSummary] = useState({
@@ -199,13 +202,15 @@ export default function StockScreen() {
                 </ThemedText>
               </View>
               
-              <TouchableOpacity
-                style={styles.adjustButton}
-                onPress={() => openAdjustmentForm(item)}
-              >
-                <Ionicons name="create-outline" size={16} color="#3b82f6" />
-                <ThemedText style={styles.adjustButtonText}>Adjust</ThemedText>
-              </TouchableOpacity>
+              {canAdjustStock && (
+                <TouchableOpacity
+                  style={styles.adjustButton}
+                  onPress={() => openAdjustmentForm(item)}
+                >
+                  <Ionicons name="create-outline" size={16} color="#3b82f6" />
+                  <ThemedText style={styles.adjustButtonText}>Adjust</ThemedText>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         ))}
@@ -237,7 +242,7 @@ export default function StockScreen() {
 
   return (
     <Screen 
-      title="Stock Management" 
+      title={`Stock - ${currentUser?.name || 'User'}`}
       rightHeaderAction={{
         icon: 'settings',
         onPress: showSettings

@@ -52,10 +52,9 @@ export function getSalesAnalytics(timeRange: TimeRange = 'month'): SalesAnalytic
   }>(
     `SELECT 
       COUNT(DISTINCT s.id) as totalTransactions,
-      SUM(s.total) as totalRevenue,
-      SUM(si.quantity) as totalSales
+      SUM(s.totalXaf) as totalRevenue,
+      SUM(s.quantity) as totalSales
     FROM sales s
-    JOIN sale_items si ON s.id = si.saleId
     WHERE s.createdAt >= ?`,
     [dateFilter]
   )[0];
@@ -80,11 +79,10 @@ export function getSalesTrend(timeRange: TimeRange = 'week'): SalesTrend[] {
   return query<SalesTrend>(
     `SELECT 
       DATE(s.createdAt) as date,
-      SUM(si.quantity) as sales,
-      SUM(s.total) as revenue,
+      SUM(s.quantity) as sales,
+      SUM(s.totalXaf) as revenue,
       COUNT(DISTINCT s.id) as transactions
     FROM sales s
-    JOIN sale_items si ON s.id = si.saleId
     WHERE s.createdAt >= ?
     GROUP BY DATE(s.createdAt)
     ORDER BY date ASC`,
@@ -100,12 +98,11 @@ export function getTopProducts(limit: number = 10, timeRange: TimeRange = 'month
       p.id as productId,
       p.name as productName,
       p.sizeLabel,
-      SUM(si.quantity) as totalSold,
-      SUM(si.quantity * si.unitPrice) as revenue,
+      SUM(s.quantity) as totalSold,
+      SUM(s.totalXaf) as revenue,
       p.quantity as stockLevel
-    FROM sale_items si
-    JOIN sales s ON si.saleId = s.id
-    JOIN products p ON si.productId = p.id
+    FROM sales s
+    JOIN products p ON s.productId = p.id
     WHERE s.createdAt >= ? AND p.deletedAt IS NULL
     GROUP BY p.id, p.name, p.sizeLabel, p.quantity
     ORDER BY totalSold DESC
@@ -122,13 +119,12 @@ export function getCategoryAnalytics(timeRange: TimeRange = 'month'): CategoryAn
       c.id as categoryId,
       c.name as categoryName,
       COUNT(DISTINCT p.id) as totalProducts,
-      COALESCE(SUM(si.quantity), 0) as totalSold,
-      COALESCE(SUM(si.quantity * si.unitPrice), 0) as revenue,
-      COALESCE(AVG(si.unitPrice), 0) as averagePrice
+      COALESCE(SUM(s.quantity), 0) as totalSold,
+      COALESCE(SUM(s.totalXaf), 0) as revenue,
+      COALESCE(AVG(s.priceXaf), 0) as averagePrice
     FROM categories c
     LEFT JOIN products p ON c.id = p.categoryId AND p.deletedAt IS NULL
-    LEFT JOIN sale_items si ON p.id = si.productId
-    LEFT JOIN sales s ON si.saleId = s.id AND s.createdAt >= ?
+    LEFT JOIN sales s ON p.id = s.productId AND s.createdAt >= ?
     GROUP BY c.id, c.name
     ORDER BY revenue DESC`,
     [dateFilter]
@@ -163,34 +159,15 @@ export function getStockAnalytics(lowStockThreshold: number = 3): StockAnalytics
   };
 }
 
+// Note: Payment method tracking is not implemented in the current schema
+// This function is kept for future implementation when payment methods are added
 export function getRevenueByPaymentMethod(timeRange: TimeRange = 'month'): {
   paymentMethod: string;
   revenue: number;
   percentage: number;
 }[] {
-  const dateFilter = getDateFilter(timeRange);
-  
-  const results = query<{
-    paymentMethod: string;
-    revenue: number;
-  }>(
-    `SELECT 
-      paymentMethod,
-      SUM(total) as revenue
-    FROM sales
-    WHERE createdAt >= ?
-    GROUP BY paymentMethod
-    ORDER BY revenue DESC`,
-    [dateFilter]
-  );
-
-  const totalRevenue = results.reduce((sum, item) => sum + item.revenue, 0);
-
-  return results.map(item => ({
-    paymentMethod: item.paymentMethod,
-    revenue: item.revenue,
-    percentage: totalRevenue > 0 ? (item.revenue / totalRevenue) * 100 : 0,
-  }));
+  // Return empty array since payment methods are not tracked
+  return [];
 }
 
 export function getHourlySales(timeRange: TimeRange = 'week'): {
@@ -207,10 +184,9 @@ export function getHourlySales(timeRange: TimeRange = 'week'): {
   }>(
     `SELECT 
       CAST(strftime('%H', s.createdAt) AS INTEGER) as hour,
-      SUM(si.quantity) as sales,
-      SUM(s.total) as revenue
+      SUM(s.quantity) as sales,
+      SUM(s.totalXaf) as revenue
     FROM sales s
-    JOIN sale_items si ON s.id = si.saleId
     WHERE s.createdAt >= ?
     GROUP BY CAST(strftime('%H', s.createdAt) AS INTEGER)
     ORDER BY hour ASC`,

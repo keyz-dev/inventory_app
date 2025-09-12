@@ -11,6 +11,7 @@ import '../global.css';
 
 import { SplashScreen } from '@/components/ui/SplashScreen';
 import { SettingsProvider } from '@/contexts/SettingsContext';
+import { UserProvider } from '@/contexts/UserContext';
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -90,15 +91,19 @@ export default function RootLayout() {
   }
 
   return (
-    <SettingsProvider>
-      <ThemeProvider value={DefaultTheme}>
-        <Stack initialRouteName="pin">
-          <Stack.Screen name="pin" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </SettingsProvider>
+    <UserProvider>
+      <SettingsProvider>
+        <ThemeProvider value={DefaultTheme}>
+          <Stack initialRouteName="pin">
+            <Stack.Screen name="pin" options={{ headerShown: false }} />
+            <Stack.Screen name="user-selection" options={{ headerShown: false }} />
+            <Stack.Screen name="user-management" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </SettingsProvider>
+    </UserProvider>
   );
 }

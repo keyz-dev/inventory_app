@@ -8,21 +8,24 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { formatXAF } from '@/constants/Currency';
 import { Colors } from '@/constants/DesignSystem';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useCanViewAnalytics, useUser } from '@/contexts/UserContext';
 import {
-    getCategoryAnalytics,
-    getHourlySales,
-    getRevenueByPaymentMethod,
-    getSalesAnalytics,
-    getSalesTrend,
-    getStockAnalytics,
-    getTopProducts,
-    TimeRange,
+  getCategoryAnalytics,
+  getHourlySales,
+  getRevenueByPaymentMethod,
+  getSalesAnalytics,
+  getSalesTrend,
+  getStockAnalytics,
+  getTopProducts,
+  TimeRange,
 } from '@/data/analyticsRepo';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function AnalyticsScreen() {
   const { showSettings } = useSettings();
+  const { currentUser } = useUser();
+  const canViewAnalytics = useCanViewAnalytics();
   const [timeRange, setTimeRange] = useState<TimeRange>('month');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -36,11 +39,7 @@ export default function AnalyticsScreen() {
   const [paymentMethodData, setPaymentMethodData] = useState<any[]>([]);
   const [hourlySales, setHourlySales] = useState<any[]>([]);
 
-  useEffect(() => {
-    loadAnalytics();
-  }, [timeRange]);
-
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -69,12 +68,16 @@ export default function AnalyticsScreen() {
       setCategoryAnalytics(categories);
       setPaymentMethodData(paymentMethods);
       setHourlySales(hourly);
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Failed to load analytics data');
     } finally {
       setLoading(false);
     }
-  };
+  }, [timeRange]);
+
+  useEffect(() => {
+    loadAnalytics();
+  }, [loadAnalytics]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -107,9 +110,27 @@ export default function AnalyticsScreen() {
     );
   }
 
+  // Redirect if user doesn't have permission to view analytics
+  if (!canViewAnalytics) {
+    return (
+      <Screen title="Analytics" rightHeaderAction={{ icon: 'settings', onPress: showSettings }}>
+        <View style={styles.noAccessContainer}>
+          <Text style={styles.noAccessIcon}>📊</Text>
+          <Text style={styles.noAccessTitle}>Access Denied</Text>
+          <Text style={styles.noAccessText}>
+            You don&apos;t have permission to view analytics.
+          </Text>
+          <Text style={styles.noAccessSubtext}>
+            Contact your manager for access.
+          </Text>
+        </View>
+      </Screen>
+    );
+  }
+
   return (
     <Screen 
-      title="Analytics" 
+      title={`Analytics - ${currentUser?.name || 'User'}`}
       rightHeaderAction={{
         icon: 'settings',
         onPress: showSettings
@@ -140,7 +161,7 @@ export default function AnalyticsScreen() {
 
         {/* Sales Metrics */}
         {salesAnalytics && (
-          <View style={styles.metricsContainer}>
+          <View style={styles.container}>
             <Text style={styles.sectionTitle}>Sales Overview</Text>
             <View style={styles.metricsRow}>
               <MetricCard
@@ -175,7 +196,7 @@ export default function AnalyticsScreen() {
 
         {/* Stock Metrics */}
         {stockAnalytics && (
-          <View style={styles.metricsContainer}>
+          <View style={styles.container}>
             <Text style={styles.sectionTitle}>Stock Overview</Text>
             <View style={styles.metricsRow}>
               <MetricCard
@@ -285,6 +306,33 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.neutral[50],
+  },
+  noAccessContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+  },
+  noAccessIcon: {
+    fontSize: 64,
+    marginBottom: 16,
+  },
+  noAccessTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#ef4444',
+    marginBottom: 8,
+  },
+  noAccessText: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  noAccessSubtext: {
+    fontSize: 14,
+    color: '#9ca3af',
+    textAlign: 'center',
   },
   loadingContainer: {
     flex: 1,

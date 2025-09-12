@@ -1,3 +1,4 @@
+import { useUser } from '@/contexts/UserContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -9,6 +10,7 @@ export type PinMode = 'loading' | 'setup' | 'confirm' | 'enter' | 'forgot' | 're
 
 export const usePinLogic = () => {
   const router = useRouter();
+  const { users } = useUser();
   const [mode, setMode] = useState<PinMode>('loading');
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
@@ -158,7 +160,7 @@ export const usePinLogic = () => {
     }
     try {
       await AsyncStorage.setItem(STORAGE_KEY, pin);
-      router.replace('/(tabs)/sell');
+      router.replace('/user-selection');
     } catch {
       setError('Failed to save PIN. Please try again.');
       shake();
@@ -169,13 +171,15 @@ export const usePinLogic = () => {
   const handleUnlock = async () => {
     setError('');
     try {
-      const saved = await AsyncStorage.getItem(STORAGE_KEY);
-      if (saved && pin === saved) {
+      // Check if PIN matches any user's PIN
+      const matchingUser = users.find(user => user.pin === pin && user.isActive);
+      
+      if (matchingUser) {
         // Reset failed attempts on successful login
         await AsyncStorage.removeItem('pinAttempts');
         await AsyncStorage.removeItem('pinLockout');
         setFailedAttempts(0);
-        router.replace('/(tabs)/sell');
+        router.replace('/user-selection');
       } else {
         const newAttempts = failedAttempts + 1;
         setFailedAttempts(newAttempts);

@@ -25,6 +25,10 @@ export const migrations: Migration[] = [
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         parentId TEXT,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL,
+        deletedAt TEXT,
+        version INTEGER NOT NULL DEFAULT 1,
         FOREIGN KEY(parentId) REFERENCES categories(id)
       );
 
@@ -37,8 +41,10 @@ export const migrations: Migration[] = [
         sizeLabel TEXT,              -- e.g., Big/Medium/Small
         variantOfId TEXT,            -- references products(id) if this is a variant row
         categoryId TEXT,             -- references categories(id)
+        createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL,
         deletedAt TEXT,
+        version INTEGER NOT NULL DEFAULT 1,
         FOREIGN KEY(variantOfId) REFERENCES products(id) ON DELETE CASCADE,
         FOREIGN KEY(categoryId) REFERENCES categories(id)
       );
@@ -53,9 +59,15 @@ export const migrations: Migration[] = [
       -- Sales and adjustments
       CREATE TABLE IF NOT EXISTS sales (
         id TEXT PRIMARY KEY,
-        total INTEGER NOT NULL,
-        paymentMethod TEXT NOT NULL,
-        createdAt TEXT NOT NULL
+        productId TEXT NOT NULL,
+        quantity INTEGER NOT NULL,
+        priceXaf INTEGER NOT NULL,
+        totalXaf INTEGER NOT NULL,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL,
+        deletedAt TEXT,
+        version INTEGER NOT NULL DEFAULT 1,
+        FOREIGN KEY(productId) REFERENCES products(id)
       );
 
       CREATE TABLE IF NOT EXISTS sale_items (
@@ -71,9 +83,12 @@ export const migrations: Migration[] = [
       CREATE TABLE IF NOT EXISTS stock_adjustments (
         id TEXT PRIMARY KEY,
         productId TEXT NOT NULL,     -- direct reference to products row
-        delta INTEGER NOT NULL,
+        quantityChange INTEGER NOT NULL,
         reason TEXT,
         createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL,
+        deletedAt TEXT,
+        version INTEGER NOT NULL DEFAULT 1,
         FOREIGN KEY(productId) REFERENCES products(id)
       );
 
@@ -85,18 +100,18 @@ export const migrations: Migration[] = [
       );
 
       -- Seed top-level categories
-      INSERT OR IGNORE INTO categories(id, name, parentId) VALUES
-        ('cat_cosmetics', 'Cosmetics', NULL),
-        ('cat_pharma', 'Pharmaceuticals', NULL),
-        ('cat_services', 'Services', NULL);
+      INSERT OR IGNORE INTO categories(id, name, parentId, createdAt, updatedAt, version) VALUES
+        ('cat_cosmetics', 'Cosmetics', NULL, datetime('now'), datetime('now'), 1),
+        ('cat_pharma', 'Pharmaceuticals', NULL, datetime('now'), datetime('now'), 1),
+        ('cat_services', 'Services', NULL, datetime('now'), datetime('now'), 1);
 
       -- Seed some subcategories under Cosmetics
-      INSERT OR IGNORE INTO categories(id, name, parentId) VALUES
-        ('cat_soap', 'Soaps & Body Wash', 'cat_cosmetics'),
-        ('cat_lotion', 'Lotions & Creams', 'cat_cosmetics'),
-        ('cat_oil', 'Oils & Butters', 'cat_cosmetics'),
-        ('cat_perfume', 'Perfumes & Deodorants', 'cat_cosmetics'),
-        ('cat_hygiene', 'Hygiene & Antiseptics', 'cat_cosmetics');
+      INSERT OR IGNORE INTO categories(id, name, parentId, createdAt, updatedAt, version) VALUES
+        ('cat_soap', 'Soaps & Body Wash', 'cat_cosmetics', datetime('now'), datetime('now'), 1),
+        ('cat_lotion', 'Lotions & Creams', 'cat_cosmetics', datetime('now'), datetime('now'), 1),
+        ('cat_oil', 'Oils & Butters', 'cat_cosmetics', datetime('now'), datetime('now'), 1),
+        ('cat_perfume', 'Perfumes & Deodorants', 'cat_cosmetics', datetime('now'), datetime('now'), 1),
+        ('cat_hygiene', 'Hygiene & Antiseptics', 'cat_cosmetics', datetime('now'), datetime('now'), 1);
 
       -- Track schema version
       INSERT OR REPLACE INTO meta(key, value) VALUES ('schema_version', '1');

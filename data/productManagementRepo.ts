@@ -59,15 +59,15 @@ export function createProduct(data: CreateProductData): Product {
   if (data.variants.length === 1 && !data.variants[0].sizeLabel) {
     const variant = data.variants[0];
     execute(
-      `INSERT INTO products (id, name, priceXaf, quantity, sizeLabel, variantOfId, categoryId, updatedAt, deletedAt) 
-       VALUES (?, ?, ?, ?, NULL, NULL, ?, datetime('now'), NULL)`,
+      `INSERT INTO products (id, name, priceXaf, quantity, sizeLabel, variantOfId, categoryId, createdAt, updatedAt, deletedAt, version) 
+       VALUES (?, ?, ?, ?, NULL, NULL, ?, datetime('now'), datetime('now'), NULL, 1)`,
       [productId, data.name, variant.priceXaf, variant.quantity, data.categoryId]
     );
   } else {
     // Create parent product
     execute(
-      `INSERT INTO products (id, name, priceXaf, quantity, sizeLabel, variantOfId, categoryId, updatedAt, deletedAt) 
-       VALUES (?, ?, NULL, 0, NULL, NULL, ?, datetime('now'), NULL)`,
+      `INSERT INTO products (id, name, priceXaf, quantity, sizeLabel, variantOfId, categoryId, createdAt, updatedAt, deletedAt, version) 
+       VALUES (?, ?, NULL, 0, NULL, NULL, ?, datetime('now'), datetime('now'), NULL, 1)`,
       [productId, data.name, data.categoryId]
     );
 
@@ -75,8 +75,8 @@ export function createProduct(data: CreateProductData): Product {
     for (const variant of data.variants) {
       const variantId = `prod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       execute(
-        `INSERT INTO products (id, name, priceXaf, quantity, sizeLabel, variantOfId, categoryId, updatedAt, deletedAt) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), NULL)`,
+        `INSERT INTO products (id, name, priceXaf, quantity, sizeLabel, variantOfId, categoryId, createdAt, updatedAt, deletedAt, version) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), NULL, 1)`,
         [variantId, data.name, variant.priceXaf, variant.quantity, variant.sizeLabel, productId, data.categoryId]
       );
     }
@@ -118,8 +118,8 @@ export function updateProduct(productId: UUID, data: UpdateProductData): Product
     for (const variant of data.variants) {
       const variantId = variant.id || `prod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       execute(
-        `INSERT INTO products (id, name, priceXaf, quantity, sizeLabel, variantOfId, categoryId, updatedAt, deletedAt) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), NULL)`,
+        `INSERT INTO products (id, name, priceXaf, quantity, sizeLabel, variantOfId, categoryId, createdAt, updatedAt, deletedAt, version) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), NULL, 1)`,
         [variantId, data.name || existingProduct.name, variant.priceXaf, variant.quantity, variant.sizeLabel, productId, data.categoryId || existingProduct.categoryId]
       );
     }
@@ -251,7 +251,7 @@ export function bulkImportProducts(products: ImportProductData[]): {
           // Create new parent category
           parentCategoryId = `cat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
           execute(
-            `INSERT INTO categories (id, name, parentId) VALUES (?, ?, NULL)`,
+            `INSERT INTO categories (id, name, parentId, createdAt, updatedAt, version) VALUES (?, ?, NULL, datetime('now'), datetime('now'), 1)`,
             [parentCategoryId, product.parentCategory]
           );
         }
@@ -271,7 +271,7 @@ export function bulkImportProducts(products: ImportProductData[]): {
           // Create new subcategory
           categoryId = `cat_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
           execute(
-            `INSERT INTO categories (id, name, parentId) VALUES (?, ?, ?)`,
+            `INSERT INTO categories (id, name, parentId, createdAt, updatedAt, version) VALUES (?, ?, ?, datetime('now'), datetime('now'), 1)`,
             [categoryId, product.subcategory, parentCategoryId]
           );
         }

@@ -9,7 +9,7 @@ type Props = {
   visible: boolean;
   product: Product | null;
   onClose: () => void;
-  onAdjust: (productId: string, delta: number, reason: string) => void;
+  onAdjust: (productId: string, quantityChange: number, reason: string) => void;
 };
 
 const ADJUSTMENT_REASONS = [
@@ -34,8 +34,8 @@ export function StockAdjustmentForm({ visible, product, onClose, onAdjust }: Pro
       return;
     }
 
-    const delta = parseInt(quantity);
-    if (isNaN(delta) || delta === 0) {
+    const quantityChange = parseInt(quantity);
+    if (isNaN(quantityChange) || quantityChange === 0) {
       Alert.alert('Error', 'Please enter a valid quantity');
       return;
     }
@@ -46,9 +46,9 @@ export function StockAdjustmentForm({ visible, product, onClose, onAdjust }: Pro
       return;
     }
 
-    const actualDelta = isAdding ? Math.abs(delta) : -Math.abs(delta);
+    const actualQuantityChange = isAdding ? Math.abs(quantityChange) : -Math.abs(quantityChange);
     
-    onAdjust(product.id, actualDelta, finalReason);
+    onAdjust(product.id, actualQuantityChange, finalReason);
     handleClose();
   };
 

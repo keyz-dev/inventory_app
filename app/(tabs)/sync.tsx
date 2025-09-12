@@ -2,6 +2,7 @@ import { Screen } from '@/components/Screen';
 import { ThemedText } from '@/components/ThemedText';
 import { SyncStatus } from '@/components/sync/SyncStatus';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useCanManageSettings, useUser } from '@/contexts/UserContext';
 import { useSync } from '@/hooks/useSync';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
@@ -10,6 +11,8 @@ import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 export default function SyncScreen() {
   const { syncState, isInitialized, syncNow } = useSync();
   const { showSettings } = useSettings();
+  const { currentUser } = useUser();
+  const canManageSettings = useCanManageSettings();
   const [isManualSyncing, setIsManualSyncing] = useState(false);
 
   const handleSyncPress = async () => {
@@ -47,9 +50,29 @@ export default function SyncScreen() {
     );
   }
 
+  // Redirect if user doesn't have permission to manage settings
+  if (!canManageSettings) {
+    return (
+      <Screen title="Sync" rightHeaderAction={{ icon: 'settings', onPress: showSettings }}>
+        <View style={styles.noAccessContainer}>
+          <Ionicons name="cloudy-outline" size={64} color="#ef4444" />
+          <ThemedText type="title" style={styles.noAccessTitle}>
+            Access Denied
+          </ThemedText>
+          <ThemedText style={styles.noAccessText}>
+            You don't have permission to access sync settings.
+          </ThemedText>
+          <ThemedText style={styles.noAccessSubtext}>
+            Contact your manager for access.
+          </ThemedText>
+        </View>
+      </Screen>
+    );
+  }
+
   return (
     <Screen 
-      title="Sync" 
+      title={`Sync - ${currentUser?.name || 'User'}`}
       rightHeaderAction={{
         icon: 'settings',
         onPress: showSettings
@@ -194,5 +217,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#1f2937',
     fontFamily: 'Poppins_400Regular',
+  },
+  noAccessContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+  },
+  noAccessTitle: {
+    marginTop: 16,
+    marginBottom: 8,
+    color: '#ef4444',
+  },
+  noAccessText: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  noAccessSubtext: {
+    fontSize: 14,
+    color: '#9ca3af',
+    textAlign: 'center',
   },
 });

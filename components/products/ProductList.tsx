@@ -14,6 +14,8 @@ type Props = {
   loadingMore?: boolean;
   total?: number;
   highlightedProductId?: string | null;
+  loading?: boolean;
+  emptyMessage?: string;
 };
 
 export const ProductList = forwardRef<FlatList, Props>(function ProductList({ 
@@ -24,7 +26,9 @@ export const ProductList = forwardRef<FlatList, Props>(function ProductList({
   hasMore = false, 
   loadingMore = false,
   total = 0,
-  highlightedProductId = null
+  highlightedProductId = null,
+  loading = false,
+  emptyMessage = "No products found"
 }, ref) {
   
   const renderItem = useCallback(({ item }: { item: Product }) => (
@@ -88,6 +92,24 @@ export const ProductList = forwardRef<FlatList, Props>(function ProductList({
     );
   }, [data.length, total]);
 
+  const renderEmpty = useCallback(() => {
+    if (loading) {
+      return (
+        <View style={styles.emptyContainer}>
+          <ActivityIndicator size="large" color="#3b82f6" />
+          <ThemedText style={styles.emptyText}>Loading products...</ThemedText>
+        </View>
+      );
+    }
+    
+    return (
+      <View style={styles.emptyContainer}>
+        <Ionicons name="cube-outline" size={64} color="#9ca3af" />
+        <ThemedText style={styles.emptyText}>{emptyMessage}</ThemedText>
+      </View>
+    );
+  }, [loading, emptyMessage]);
+
   const keyExtractor = useCallback((item: Product) => item.id, []);
 
   const getItemLayout = useCallback((data: any, index: number) => ({
@@ -105,6 +127,7 @@ export const ProductList = forwardRef<FlatList, Props>(function ProductList({
       contentContainerStyle={styles.list}
       ListHeaderComponent={renderHeader}
       ListFooterComponent={renderFooter}
+      ListEmptyComponent={renderEmpty}
       onEndReached={onLoadMore}
       onEndReachedThreshold={0.5}
       getItemLayout={getItemLayout}
@@ -189,6 +212,20 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 14,
     color: '#6b7280',
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 64,
+    paddingHorizontal: 32,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginTop: 16,
+    fontFamily: 'Poppins_400Regular',
   },
 });
 

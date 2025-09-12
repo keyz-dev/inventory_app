@@ -4,7 +4,7 @@ import { UUID } from '@/types/domain';
 export type StockAdjustment = {
   id: string;
   productId: string;
-  delta: number; // positive for adding stock, negative for removing
+  quantityChange: number; // positive for adding stock, negative for removing
   reason: string;
   createdAt: string;
 };
@@ -16,10 +16,10 @@ export type StockAdjustmentWithProduct = StockAdjustment & {
 
 export function recordStockAdjustment(
   productId: UUID,
-  delta: number,
+  quantityChange: number,
   reason: string
 ): void {
-  console.log('recordStockAdjustment called with:', { productId, delta, reason });
+  console.log('recordStockAdjustment called with:', { productId, quantityChange, reason });
   
   // Validate product exists
   const product = query<{ id: string }>(
@@ -40,8 +40,8 @@ export function recordStockAdjustment(
 
   console.log('Current stock:', currentStock);
 
-  if (currentStock.quantity + delta < 0) {
-    console.error('Insufficient stock:', currentStock.quantity, '+', delta, '=', currentStock.quantity + delta);
+  if (currentStock.quantity + quantityChange < 0) {
+    console.error('Insufficient stock:', currentStock.quantity, '+', quantityChange, '=', currentStock.quantity + quantityChange);
     throw new Error('Insufficient stock for this adjustment');
   }
 
@@ -49,15 +49,16 @@ export function recordStockAdjustment(
   const adjustmentId = `adj_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   console.log('Recording adjustment:', adjustmentId);
   execute(
-    `INSERT INTO stock_adjustments (id, productId, delta, reason, createdAt) VALUES (?, ?, ?, ?, datetime('now'))`,
-    [adjustmentId, productId, delta, reason]
+    `INSERT INTO stock_adjustments (id, productId, quantityChange, reason, createdAt, updatedAt, deletedAt, version) 
+     VALUES (?, ?, ?, ?, datetime('now'), datetime('now'), NULL, 1)`,
+    [adjustmentId, productId, quantityChange, reason]
   );
 
   // Update product stock
-  console.log('Updating product stock:', productId, 'delta:', delta);
+  console.log('Updating product stock:', productId, 'quantityChange:', quantityChange);
   execute(
     `UPDATE products SET quantity = quantity + ?, updatedAt = datetime('now') WHERE id = ?`,
-    [delta, productId]
+    [quantityChange, productId]
   );
   
   // Verify the update
@@ -84,7 +85,7 @@ export function getStockAdjustments(
     `SELECT 
       sa.id,
       sa.productId,
-      sa.delta,
+      sa.quantityChange,
       sa.reason,
       sa.createdAt,
       p.name as productName,

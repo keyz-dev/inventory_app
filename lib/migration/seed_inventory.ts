@@ -40,13 +40,21 @@ export async function runSeedMigration() {
   console.log(`Found ${totalProducts} products to seed across ${inventory.categories.length} categories`);
 
   for (const category of inventory.categories) {
-    // Generate UUID for parent category
-    const parentId = generateUUID();
+    // Use predefined category IDs for main categories
+    let parentId: string;
+    if (category.name.toLowerCase().includes('cosmetic')) {
+      parentId = 'cat_cosmetics';
+    } else if (category.name.toLowerCase().includes('pharma') || category.name.toLowerCase().includes('pharmaceutical')) {
+      parentId = 'cat_pharma';
+    } else {
+      // For other categories, generate UUID but use a consistent naming pattern
+      parentId = `cat_${category.name.toLowerCase().replace(/\s+/g, '_')}`;
+    }
     
-    // Insert parent category
+    // Insert parent category (ignore if already exists)
     db.runSync(
-      "INSERT INTO categories (id, name, parentId) VALUES (?, ?, ?)",
-      [parentId, category.name, null]
+      "INSERT OR IGNORE INTO categories (id, name, parentId, createdAt, updatedAt, version) VALUES (?, ?, ?, ?, ?, ?)",
+      [parentId, category.name, null, new Date().toISOString(), new Date().toISOString(), 1]
     );
 
     for (const sub of category.subcategories) {
@@ -55,8 +63,8 @@ export async function runSeedMigration() {
       
       // Insert subcategory (as a child category)
       db.runSync(
-        "INSERT INTO categories (id, name, parentId) VALUES (?, ?, ?)",
-        [subId, sub.name, parentId]
+        "INSERT INTO categories (id, name, parentId, createdAt, updatedAt, version) VALUES (?, ?, ?, ?, ?, ?)",
+        [subId, sub.name, parentId, new Date().toISOString(), new Date().toISOString(), 1]
       );
 
       for (const product of sub.products) {
@@ -65,7 +73,7 @@ export async function runSeedMigration() {
         
         // Insert product with proper schema fields
         db.runSync(
-          "INSERT INTO products (id, name, priceXaf, quantity, sizeLabel, categoryId, updatedAt, deletedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+          "INSERT INTO products (id, name, priceXaf, quantity, sizeLabel, categoryId, createdAt, updatedAt, deletedAt, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
           [
             productId,
             product.name,
@@ -74,7 +82,9 @@ export async function runSeedMigration() {
             product.sizeLabel || null,
             subId, // Reference to the subcategory
             now,
-            null // deletedAt is null for active products
+            now,
+            null, // deletedAt is null for active products
+            1
           ]
         );
         

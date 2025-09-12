@@ -5,6 +5,7 @@ import { ProductsFilters } from '@/components/products/ProductsFilters';
 import { Screen } from '@/components/Screen';
 import { ThemedText } from '@/components/ThemedText';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useCanManageProducts, useUser } from '@/contexts/UserContext';
 import { createProduct, deleteProduct, updateProduct } from '@/data/productManagementRepo';
 import { useProducts } from '@/hooks/useProducts';
 import { useSync } from '@/hooks/useSync';
@@ -30,6 +31,8 @@ export default function ProductsScreen() {
     pagination
   } = useProducts(true); // Enable pagination
   const { showSettings } = useSettings();
+  const { currentUser } = useUser();
+  const canManageProducts = useCanManageProducts();
   
   const { queueOperation } = useSync(); // Add sync functionality
   
@@ -46,15 +49,18 @@ export default function ProductsScreen() {
       
       // Queue sync operation for the created product
       try {
-        await queueOperation('product', 'create', {
-          id: product.id,
-          name: product.name,
-          priceXaf: product.priceXaf,
-          quantity: product.quantity,
-          sizeLabel: product.sizeLabel,
-          variantOfId: product.variantOfId,
-          categoryId: product.categoryId
-        });
+        // For products, we need to sync each variant
+        for (const variant of product.variants) {
+          await queueOperation('product', 'create', {
+            id: variant.id,
+            name: product.name,
+            priceXaf: variant.priceXaf,
+            quantity: variant.quantity,
+            sizeLabel: variant.sizeLabel,
+            variantOfId: product.variants.length > 1 ? product.id : null,
+            categoryId: product.categoryId
+          });
+        }
       } catch (syncError) {
         // Don't show error to user - the product was created successfully
         // Sync will retry automatically
@@ -75,15 +81,18 @@ export default function ProductsScreen() {
       
       // Queue sync operation for the updated product
       try {
-        await queueOperation('product', 'update', {
-          id: updatedProduct.id,
-          name: updatedProduct.name,
-          priceXaf: updatedProduct.priceXaf,
-          quantity: updatedProduct.quantity,
-          sizeLabel: updatedProduct.sizeLabel,
-          variantOfId: updatedProduct.variantOfId,
-          categoryId: updatedProduct.categoryId
-        });
+        // For products, we need to sync each variant
+        for (const variant of updatedProduct.variants) {
+          await queueOperation('product', 'update', {
+            id: variant.id,
+            name: updatedProduct.name,
+            priceXaf: variant.priceXaf,
+            quantity: variant.quantity,
+            sizeLabel: variant.sizeLabel,
+            variantOfId: updatedProduct.variants.length > 1 ? updatedProduct.id : null,
+            categoryId: updatedProduct.categoryId
+          });
+        }
       } catch (syncError) {
         // Don't show error to user - sync will retry automatically
       }
@@ -110,15 +119,18 @@ export default function ProductsScreen() {
               
               // Queue sync operation for the deleted product
               try {
-                await queueOperation('product', 'delete', {
-                  id: product.id,
-                  name: product.name,
-                  priceXaf: product.priceXaf,
-                  quantity: product.quantity,
-                  sizeLabel: product.sizeLabel,
-                  variantOfId: product.variantOfId,
-                  categoryId: product.categoryId
-                });
+                // For products, we need to sync each variant
+                for (const variant of product.variants) {
+                  await queueOperation('product', 'delete', {
+                    id: variant.id,
+                    name: product.name,
+                    priceXaf: variant.priceXaf,
+                    quantity: variant.quantity,
+                    sizeLabel: variant.sizeLabel,
+                    variantOfId: product.variants.length > 1 ? product.id : null,
+                    categoryId: product.categoryId
+                  });
+                }
               } catch (syncError) {
                 // Don't show error to user - sync will retry automatically
               }
@@ -230,25 +242,27 @@ export default function ProductsScreen() {
 
   return (
     <Screen 
-      title="Products" 
+      title={`Products - ${currentUser?.name || 'User'}`}
       rightHeaderAction={{
         icon: 'settings',
         onPress: showSettings
       }}
     >
       <View style={styles.container}>
-        {/* Action Buttons */}
-        <View style={styles.actionBar}>
-          <TouchableOpacity style={styles.actionButton} onPress={handleAddProduct}>
-            <Ionicons name="add" size={20} color="white" />
-            <ThemedText style={styles.actionButtonText}>Add Product</ThemedText>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.actionButton} onPress={() => setShowBulkImport(true)}>
-            <Ionicons name="cloud-upload" size={20} color="white" />
-            <ThemedText style={styles.actionButtonText}>Bulk Import</ThemedText>
-          </TouchableOpacity>
-        </View>
+        {/* Action Buttons - Only show if user can manage products */}
+        {canManageProducts && (
+          <View style={styles.actionBar}>
+            <TouchableOpacity style={styles.actionButton} onPress={handleAddProduct}>
+              <Ionicons name="add" size={20} color="white" />
+              <ThemedText style={styles.actionButtonText}>Add Product</ThemedText>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.actionButton} onPress={() => setShowBulkImport(true)}>
+              <Ionicons name="cloud-upload" size={20} color="white" />
+              <ThemedText style={styles.actionButtonText}>Bulk Import</ThemedText>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <ProductsFilters
           search={search}
@@ -258,19 +272,19 @@ export default function ProductsScreen() {
           onApply={reload}
         />
         
-        {loading ? null : (
-          <ProductList 
-            ref={flatListRef}
-            data={products} 
-            onEdit={handleEditProduct}
-            onDelete={handleDeleteProduct}
-            onLoadMore={loadMore}
-            hasMore={hasMore}
-            loadingMore={loadingMore}
-            total={pagination.total}
-            highlightedProductId={highlightedProductId}
-          />
-        )}
+        <ProductList 
+          ref={flatListRef}
+          data={products} 
+          onEdit={canManageProducts ? handleEditProduct : undefined}
+          onDelete={canManageProducts ? handleDeleteProduct : undefined}
+          onLoadMore={loadMore}
+          hasMore={hasMore}
+          loadingMore={loadingMore}
+          total={pagination.total}
+          highlightedProductId={highlightedProductId}
+          loading={loading}
+          emptyMessage={group === 'all' ? "No products found" : `No ${group} products found`}
+        />
       </View>
 
       <ProductForm

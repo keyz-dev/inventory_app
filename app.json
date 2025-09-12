@@ -21,14 +21,14 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/logo/logo.png"
+      "favicon": "./assets/images/logo/new/symbol.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/logo/logo-colored.png",
+          "image": "./assets/images/logo/new/logo.png",
           "imageWidth": 250,
           "resizeMode": "contain",
           "backgroundColor": "#F8FAFC"

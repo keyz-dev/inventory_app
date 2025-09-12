@@ -6,12 +6,19 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HapticTab } from '@/components/HapticTab';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
+import { useCanAdjustStock, useCanManageProducts, useCanManageSettings, useCanSell, useCanViewAnalytics, useUser } from '@/contexts/UserContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
+  const { currentUser } = useUser();
+  const canSell = useCanSell();
+  const canManageProducts = useCanManageProducts();
+  const canAdjustStock = useCanAdjustStock();
+  const canViewAnalytics = useCanViewAnalytics();
+  const canManageSettings = useCanManageSettings();
 
   return (
     <Tabs
@@ -34,13 +41,15 @@ export default function TabLayout() {
           },
         }),
       }}>
-      <Tabs.Screen
-        name="sell"
-        options={{
-          title: 'Sell',
-          tabBarIcon: ({ color, size }) => <Ionicons name="cart" color={color} size={size ?? 24} />,
-        }}
-      />
+      {canSell && (
+        <Tabs.Screen
+          name="sell"
+          options={{
+            title: 'Sell',
+            tabBarIcon: ({ color, size }) => <Ionicons name="cart" color={color} size={size ?? 24} />,
+          }}
+        />
+      )}
       <Tabs.Screen
         name="products"
         options={{
@@ -48,27 +57,33 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => <Ionicons name="cube" color={color} size={size ?? 24} />,
         }}
       />
-      <Tabs.Screen
-        name="stock"
-        options={{
-          title: 'Stock',
-          tabBarIcon: ({ color, size }) => <Ionicons name="cube-outline" color={color} size={size ?? 24} />,
-        }}
-      />
-      <Tabs.Screen
-        name="analytics"
-        options={{
-          title: 'Analytics',
-          tabBarIcon: ({ color, size }) => <Ionicons name="analytics" color={color} size={size ?? 24} />,
-        }}
-      />
-      <Tabs.Screen
-        name="sync"
-        options={{
-          title: 'Sync',
-          tabBarIcon: ({ color, size }) => <Ionicons name="sync" color={color} size={size ?? 24} />,
-        }}
-      />
+      {canAdjustStock && (
+        <Tabs.Screen
+          name="stock"
+          options={{
+            title: 'Stock',
+            tabBarIcon: ({ color, size }) => <Ionicons name="cube-outline" color={color} size={size ?? 24} />,
+          }}
+        />
+      )}
+      {canViewAnalytics && (
+        <Tabs.Screen
+          name="analytics"
+          options={{
+            title: 'Analytics',
+            tabBarIcon: ({ color, size }) => <Ionicons name="analytics" color={color} size={size ?? 24} />,
+          }}
+        />
+      )}
+      {canManageSettings && (
+        <Tabs.Screen
+          name="sync"
+          options={{
+            title: 'Sync',
+            tabBarIcon: ({ color, size }) => <Ionicons name="sync" color={color} size={size ?? 24} />,
+          }}
+        />
+      )}
     </Tabs>
   );
 }

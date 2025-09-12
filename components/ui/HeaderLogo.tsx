@@ -20,7 +20,7 @@ export const HeaderLogo: React.FC<HeaderLogoProps> = ({
   const LogoComponent = (
     <View style={styles.container}>
       <Image
-        source={require('@/assets/images/logo/symbol-colored.svg')}
+        source={require('@/assets/images/logo/new/symbol.svg')}
         style={[styles.logo, { width: logoSize, height: logoSize }]}
         contentFit="contain"
       />

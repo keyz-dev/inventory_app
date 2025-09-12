@@ -1,7 +1,6 @@
 import { Image } from 'expo-image';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { ThemedText } from '../ThemedText';
 
 interface SplashScreenProps {
   visible: boolean;
@@ -14,7 +13,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ visible }) => {
     <View style={styles.container}>
       <View style={styles.logoContainer}>
         <Image
-          source={require('@/assets/images/logo/logo-colored.png')}
+          source={require('@/assets/images/logo/new/logo.png')}
           style={styles.logo}
           contentFit="contain"
         />

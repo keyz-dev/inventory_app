@@ -1,8 +1,10 @@
 import { ThemedText } from '@/components/ThemedText';
+import { useCanManageUsers, useUser } from '@/contexts/UserContext';
 import { useSync } from '@/hooks/useSync';
 import backupService from '@/services/backupService';
 import { SyncConflict } from '@/types/sync';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, Modal, ScrollView, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
 import { ConflictResolutionModal } from './ConflictResolutionModal';
@@ -23,6 +25,9 @@ export function SyncSettings({ visible, onClose, syncState, onSyncNow }: SyncSet
   const [showConflictModal, setShowConflictModal] = useState(false);
   const [pendingConflicts, setPendingConflicts] = useState<SyncConflict[]>([]);
   const { updateConfig, getConfig, resolveConflict, getPendingConflicts } = useSync();
+  const { currentUser, switchUser } = useUser();
+  const canManageUsers = useCanManageUsers();
+  const router = useRouter();
 
   // Load current sync configuration
   useEffect(() => {
@@ -282,6 +287,54 @@ export function SyncSettings({ visible, onClose, syncState, onSyncNow }: SyncSet
             </View>
           </View>
 
+          {/* User Management */}
+          {canManageUsers && (
+            <View style={styles.userSection}>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="people" size={24} color="#3b82f6" />
+                <ThemedText style={styles.userTitle}>User Management</ThemedText>
+              </View>
+              
+              <TouchableOpacity 
+                style={styles.dataButton}
+                onPress={() => {
+                  onClose();
+                  router.push('/user-management');
+                }}
+              >
+                <Ionicons name="person-add" size={20} color="#3b82f6" />
+                <View style={styles.dataButtonContent}>
+                  <ThemedText style={styles.dataButtonLabel}>
+                    Manage Users
+                  </ThemedText>
+                  <ThemedText style={styles.dataButtonDescription}>
+                    Add, edit, or remove user accounts
+                  </ThemedText>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Current User Info */}
+          <View style={styles.userInfoSection}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="person" size={24} color="#3b82f6" />
+              <ThemedText style={styles.userInfoTitle}>Current User</ThemedText>
+            </View>
+            
+            <View style={styles.userInfoCard}>
+              <View style={styles.userInfoItem}>
+                <ThemedText style={styles.userInfoLabel}>Name:</ThemedText>
+                <ThemedText style={styles.userInfoValue}>{currentUser?.name || 'Unknown'}</ThemedText>
+              </View>
+              <View style={styles.userInfoItem}>
+                <ThemedText style={styles.userInfoLabel}>Role:</ThemedText>
+                <ThemedText style={styles.userInfoValue}>{currentUser?.role || 'Unknown'}</ThemedText>
+              </View>
+            </View>
+          </View>
+
           {/* Data Management */}
           <View style={styles.dataSection}>
             <View style={styles.sectionHeader}>
@@ -538,6 +591,53 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     fontFamily: 'Poppins_400Regular',
     lineHeight: 20,
+  },
+  // User Section
+  userSection: {
+    marginBottom: 32,
+  },
+  userTitle: {
+    fontSize: 20,
+    fontFamily: 'Poppins_700Bold',
+    color: '#1e293b',
+  },
+  // User Info Section
+  userInfoSection: {
+    marginBottom: 32,
+  },
+  userInfoTitle: {
+    fontSize: 20,
+    fontFamily: 'Poppins_700Bold',
+    color: '#1e293b',
+  },
+  userInfoCard: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 2,
+    borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  userInfoItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  userInfoLabel: {
+    fontSize: 16,
+    fontFamily: 'Poppins_500Medium',
+    color: '#6b7280',
+  },
+  userInfoValue: {
+    fontSize: 16,
+    fontFamily: 'Poppins_600SemiBold',
+    color: '#1e293b',
+    textTransform: 'capitalize',
   },
   // Disabled states
   disabledButton: {
