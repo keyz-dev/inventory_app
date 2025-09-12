@@ -7,7 +7,8 @@ export const defaultSyncConfig: SyncConfig = {
   syncInterval: 15, // minutes
   maxRetries: 3,
   batchSize: 50,
-  conflictResolution: 'local_wins' // or 'remote_wins' or 'manual'
+  conflictResolution: 'local_wins', // or 'remote_wins' or 'manual'
+  syncOnWiFiOnly: false // Default to mobile data (WiFi + mobile)
 };
 
 // Development configuration
@@ -21,7 +22,8 @@ export const devSyncConfig: SyncConfig = {
 export const prodSyncConfig: SyncConfig = {
   ...defaultSyncConfig,
   syncInterval: 30, // Less frequent sync in production
-  conflictResolution: 'manual'
+  conflictResolution: 'manual',
+  syncOnWiFiOnly: false // Still default to mobile data in production
 };
 
 // Get the appropriate config based on environment

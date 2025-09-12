@@ -31,6 +31,7 @@ export function getSupabaseSyncConfig() {
     syncInterval: parseInt(process.env.EXPO_PUBLIC_SYNC_INTERVAL || '15'),
     maxRetries: parseInt(process.env.EXPO_PUBLIC_MAX_RETRIES || '3'),
     batchSize: parseInt(process.env.EXPO_PUBLIC_BATCH_SIZE || '50'),
-    conflictResolution: 'local_wins' as const
+    conflictResolution: 'local_wins' as const,
+    syncOnWiFiOnly: false // Default to mobile data
   };
 }

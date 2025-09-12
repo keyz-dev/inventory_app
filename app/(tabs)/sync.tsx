@@ -1,13 +1,15 @@
 import { Screen } from '@/components/Screen';
 import { ThemedText } from '@/components/ThemedText';
 import { SyncStatus } from '@/components/sync/SyncStatus';
+import { useSettings } from '@/contexts/SettingsContext';
 import { useSync } from '@/hooks/useSync';
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 
 export default function SyncScreen() {
-  const { syncState, isInitialized, syncNow, queueOperation } = useSync();
+  const { syncState, isInitialized, syncNow } = useSync();
+  const { showSettings } = useSettings();
   const [isManualSyncing, setIsManualSyncing] = useState(false);
 
   const handleSyncPress = async () => {
@@ -16,6 +18,7 @@ export default function SyncScreen() {
     setIsManualSyncing(true);
     try {
       const result = await syncNow();
+      
       Alert.alert(
         'Sync Complete',
         `Synced ${result.syncedRecords} records. ${result.conflicts.length} conflicts found.`,
@@ -32,24 +35,7 @@ export default function SyncScreen() {
     }
   };
 
-  const handleSettingsPress = () => {
-    // TODO: Navigate to sync settings
-    Alert.alert('Settings', 'Sync settings will be implemented here');
-  };
 
-  const handleTestOperation = async () => {
-    try {
-      await queueOperation('product', 'create', {
-        name: 'Test Product',
-        priceXaf: 1000,
-        quantity: 10,
-        categoryId: 'cat_cosmetics'
-      });
-      Alert.alert('Success', 'Test operation queued for sync');
-    } catch (error) {
-      Alert.alert('Error', 'Failed to queue test operation');
-    }
-  };
 
   if (!isInitialized) {
     return (
@@ -62,12 +48,17 @@ export default function SyncScreen() {
   }
 
   return (
-    <Screen title="Sync">
+    <Screen 
+      title="Sync" 
+      rightHeaderAction={{
+        icon: 'settings',
+        onPress: showSettings
+      }}
+    >
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <SyncStatus
           syncState={syncState}
           onSyncPress={handleSyncPress}
-          onSettingsPress={handleSettingsPress}
         />
 
         <View style={styles.section}>
@@ -97,18 +88,6 @@ export default function SyncScreen() {
           </View>
         </View>
 
-        <View style={styles.section}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
-            Test Operations
-          </ThemedText>
-          
-          <TouchableOpacity style={styles.testButton} onPress={handleTestOperation}>
-            <Ionicons name="add-circle" size={20} color="#3b82f6" />
-            <ThemedText style={styles.testButtonText}>
-              Queue Test Product
-            </ThemedText>
-          </TouchableOpacity>
-        </View>
 
         <View style={styles.section}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
@@ -144,11 +123,11 @@ export default function SyncScreen() {
               </ThemedText>
             </View>
           </View>
-        </View>
-      </ScrollView>
-    </Screen>
-  );
-}
+          </View>
+        </ScrollView>
+      </Screen>
+    );
+  }
 
 const styles = StyleSheet.create({
   container: {
@@ -193,24 +172,6 @@ const styles = StyleSheet.create({
   infoValue: {
     fontSize: 14,
     color: '#1f2937',
-    fontFamily: 'Poppins_500Medium',
-  },
-  testButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-    gap: 12,
-  },
-  testButtonText: {
-    fontSize: 16,
-    color: '#3b82f6',
     fontFamily: 'Poppins_500Medium',
   },
   featureList: {

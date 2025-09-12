@@ -2,6 +2,7 @@ import { Screen } from '@/components/Screen';
 import { CategoryButtons } from '@/components/sell/CategoryButtons';
 import { ProductCard } from '@/components/sell/ProductCard';
 import { ThemedText } from '@/components/ThemedText';
+import { useSettings } from '@/contexts/SettingsContext';
 import { recordSale } from '@/data/salesRepo';
 import { useProducts } from '@/hooks/useProducts';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,6 +13,7 @@ import { Alert, FlatList, StyleSheet, TouchableOpacity, View } from 'react-nativ
 
 export default function SellScreen() {
   const { products, reload, loadMore, loadingMore } = useProducts(true); // Enable pagination
+  const { showSettings } = useSettings();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [highlightedProductId, setHighlightedProductId] = useState<string | null>(null);
   const router = useRouter();
@@ -143,7 +145,13 @@ export default function SellScreen() {
   };
 
   return (
-    <Screen title="Sell">
+    <Screen 
+      title="Sell" 
+      rightHeaderAction={{
+        icon: 'settings',
+        onPress: showSettings
+      }}
+    >
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <TouchableOpacity 

@@ -1,0 +1,2441 @@
+{
+  "categories": [
+    {
+      "name": "Cosmetics",
+      "subcategories": [
+        {
+          "name": "Makeup",
+          "products": [
+            {
+              "name": "Lip Gloss",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 3
+            },
+            {
+              "name": "Rambo Powder",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 2
+            },
+            {
+              "name": "Sivoderm Powder",
+              "sizeLabel": "",
+              "priceXaf": 800,
+              "quantity": 2
+            },
+            {
+              "name": "Aloe vera tooth powder",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 2
+            },
+            {
+              "name": "Vaseina lip theraples",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 2
+            },
+            {
+              "name": "Vaseline lip therapy",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Pink lips therapy",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 9
+            },
+            {
+              "name": "Color - lip gloss",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 1
+            },
+            {
+              "name": "Eau de javel - powder",
+              "sizeLabel": "",
+              "priceXaf": 50,
+              "quantity": 120
+            },
+            {
+              "name": "lipton",
+              "sizeLabel": "",
+              "priceXaf": 50,
+              "quantity": 7
+            },
+            {
+              "name": "brown powder",
+              "sizeLabel": "small",
+              "priceXaf": 500,
+              "quantity": 2
+            },
+            {
+              "name": "brown powder",
+              "sizeLabel": "big",
+              "priceXaf": 1500,
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "name": "Accessories",
+          "products": [
+            {
+              "name": "matches",
+              "sizeLabel": "",
+              "priceXaf": 200,
+              "quantity": 1
+            },
+            {
+              "name": "comb",
+              "sizeLabel": "Big",
+              "priceXaf": 200,
+              "quantity": 11
+            },
+            {
+              "name": "Flat comb",
+              "sizeLabel": "",
+              "priceXaf": 200,
+              "quantity": 7
+            },
+            {
+              "name": "tail comb",
+              "sizeLabel": "",
+              "priceXaf": 100,
+              "quantity": 3
+            },
+            {
+              "name": "Ear cotton",
+              "sizeLabel": "",
+              "priceXaf": 100,
+              "quantity": 4
+            },
+            {
+              "name": "Razor blade - 1 packet",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 1
+            },
+            {
+              "name": "Iron sponge",
+              "sizeLabel": "small",
+              "priceXaf": 50,
+              "quantity": 22
+            },
+            {
+              "name": "tampong sponge",
+              "sizeLabel": "",
+              "priceXaf": 50,
+              "quantity": 11
+            },
+            {
+              "name": "bathing sponge",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 3
+            },
+            {
+              "name": "Iron sponge",
+              "sizeLabel": "big",
+              "priceXaf": 100,
+              "quantity": 12
+            }
+          ]
+        },
+        {
+          "name": "Soaps & Body Wash",
+          "products": [
+            {
+              "name": "Ghana soap",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 3
+            },
+            {
+              "name": "Blue",
+              "sizeLabel": "",
+              "priceXaf": 100,
+              "quantity": 48
+            },
+            {
+              "name": "Sparkle liquid soap",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 3
+            },
+            {
+              "name": "Yupi - gel de douche",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "Tucepa",
+              "sizeLabel": "smallest",
+              "priceXaf": 100,
+              "quantity": 1
+            },
+            {
+              "name": "Tucepa -",
+              "sizeLabel": "medium",
+              "priceXaf": 200,
+              "quantity": 13
+            },
+            {
+              "name": "Correcteur universal soap",
+              "sizeLabel": "",
+              "priceXaf": 600,
+              "quantity": 5
+            },
+            {
+              "name": "Protex soap",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 5
+            },
+            {
+              "name": "O'Fresh Soap",
+              "sizeLabel": "",
+              "priceXaf": 250,
+              "quantity": 3
+            },
+            {
+              "name": "72 hours soap",
+              "sizeLabel": "",
+              "priceXaf": 800,
+              "quantity": 2
+            },
+            {
+              "name": "Terminator soap",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 4
+            },
+            {
+              "name": "Dettol soap",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 3
+            },
+            {
+              "name": "Kojic soap",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Le dauphin",
+              "sizeLabel": "",
+              "priceXaf": 700,
+              "quantity": 1
+            },
+            {
+              "name": "Santex soap",
+              "sizeLabel": "largest",
+              "priceXaf": 700,
+              "quantity": 3
+            },
+            {
+              "name": "Carotone soap",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 2
+            },
+            {
+              "name": "LE Chat Soap",
+              "sizeLabel": "",
+              "priceXaf": 800,
+              "quantity": 2
+            },
+            {
+              "name": "Santex soap",
+              "sizeLabel": "small",
+              "priceXaf": 400,
+              "quantity": 3
+            },
+            {
+              "name": "Rice milk soap",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 1
+            },
+            {
+              "name": "White Now - Soap",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 3
+            },
+            {
+              "name": "Anticeptic soap - homemade",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 1
+            },
+            {
+              "name": "Borrado soap",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 2
+            },
+            {
+              "name": "Moringa soap",
+              "sizeLabel": "",
+              "priceXaf": 250,
+              "quantity": 6
+            },
+            {
+              "name": "Longrich soap",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 3
+            },
+            {
+              "name": "Dove soap",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 2
+            },
+            {
+              "name": "Neoskin - Soap",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 1
+            },
+            {
+              "name": "Palmolive -soap",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 1
+            },
+            {
+              "name": "Blueseal vaseline",
+              "sizeLabel": "medium",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Blueseal vaseline",
+              "sizeLabel": "small",
+              "priceXaf": 700,
+              "quantity": 1
+            },
+            {
+              "name": "Sivoderm - soap",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 2
+            },
+            {
+              "name": "Red and blue lines",
+              "sizeLabel": "40L",
+              "priceXaf": 200,
+              "quantity": 9
+            },
+            {
+              "name": "Mekako soap",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 8
+            },
+            {
+              "name": "Washing brush",
+              "sizeLabel": "",
+              "priceXaf": 300,
+              "quantity": 3
+            },
+            {
+              "name": "Jazz soap",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 4
+            }
+          ]
+        },
+        {
+          "name": "Hygiene & Antiseptics",
+          "products": [
+            {
+              "name": "Prudence Condom",
+              "sizeLabel": "",
+              "priceXaf": 150,
+              "quantity": 31
+            },
+            {
+              "name": "Verisafe hand sanitizer",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Kiss condom",
+              "sizeLabel": "",
+              "priceXaf": 250,
+              "quantity": 17
+            }
+          ]
+        },
+        {
+          "name": "Oils & Butters",
+          "products": [
+            {
+              "name": "Everybody oil",
+              "sizeLabel": "largest",
+              "priceXaf": 2000,
+              "quantity": 3
+            },
+            {
+              "name": "Carodema",
+              "sizeLabel": "biggest",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "Myanga",
+              "sizeLabel": "biggest",
+              "priceXaf": 1500,
+              "quantity": 2
+            },
+            {
+              "name": "Robert Olive Oil",
+              "sizeLabel": "",
+              "priceXaf": 600,
+              "quantity": 5
+            },
+            {
+              "name": "Coco Pharma l'huile",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Zahara Olive Oil",
+              "sizeLabel": "",
+              "priceXaf": 1200,
+              "quantity": 2
+            },
+            {
+              "name": "Kojic Oil",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 2
+            },
+            {
+              "name": "Herbolene vaseline",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 2
+            },
+            {
+              "name": "Yellow myanga - L'huile Vicol",
+              "sizeLabel": "",
+              "priceXaf": 800,
+              "quantity": 3
+            },
+            {
+              "name": "Coco Pharma blanchisseur",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Caro white huile",
+              "sizeLabel": "",
+              "priceXaf": 800,
+              "quantity": 1
+            },
+            {
+              "name": "cocoa radiant",
+              "sizeLabel": "",
+              "priceXaf": 6000,
+              "quantity": 1
+            },
+            {
+              "name": "huile terminator",
+              "sizeLabel": "",
+              "priceXaf": 2500,
+              "quantity": 1
+            },
+            {
+              "name": "Turmeric Oil",
+              "sizeLabel": "",
+              "priceXaf": 3000,
+              "quantity": 3
+            },
+            {
+              "name": "Paw paw - creme",
+              "sizeLabel": "",
+              "priceXaf": 2500,
+              "quantity": 1
+            },
+            {
+              "name": "Cocoa radiant - vaseline",
+              "sizeLabel": "",
+              "priceXaf": 5000,
+              "quantity": 1
+            },
+            {
+              "name": "Paw paw  - creme",
+              "sizeLabel": "small",
+              "priceXaf": 1000,
+              "quantity": 1
+            },
+            {
+              "name": "Bio Oil",
+              "sizeLabel": "",
+              "priceXaf": 2500,
+              "quantity": 1
+            },
+            {
+              "name": "Cocopulp",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 2
+            },
+            {
+              "name": "Cocoderm scrup",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Allo mama vaseline",
+              "sizeLabel": "",
+              "priceXaf": 600,
+              "quantity": 2
+            },
+            {
+              "name": "Softwave hair oil",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 2
+            },
+            {
+              "name": "Soul mate - hair oil",
+              "sizeLabel": "",
+              "priceXaf": 600,
+              "quantity": 3
+            },
+            {
+              "name": "Style - Hair oil",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "name": "Skin Care",
+          "products": [
+            {
+              "name": "Glycedene",
+              "sizeLabel": "largest",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "moby bebe",
+              "sizeLabel": "big",
+              "priceXaf": 2700,
+              "quantity": 2
+            },
+            {
+              "name": "White Secret Serum",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 2
+            },
+            {
+              "name": "Arbutin Serum",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 2
+            },
+            {
+              "name": "Dr. Davey Serum",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "Conc Belle Face",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 2
+            },
+            {
+              "name": "Gluta white serum",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Biopur Glycerin",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Caro light glycerin",
+              "sizeLabel": "small",
+              "priceXaf": 500,
+              "quantity": 3
+            },
+            {
+              "name": "Glycerin pure",
+              "sizeLabel": "small",
+              "priceXaf": 300,
+              "quantity": 4
+            },
+            {
+              "name": "face sponge",
+              "sizeLabel": "",
+              "priceXaf": 700,
+              "quantity": 1
+            },
+            {
+              "name": "Glycerin Armelle",
+              "sizeLabel": "",
+              "priceXaf": 1700,
+              "quantity": 2
+            },
+            {
+              "name": "moby bebe Glycerin",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Calista face creme",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 5
+            },
+            {
+              "name": "Eclat total - serum",
+              "sizeLabel": "",
+              "priceXaf": 2500,
+              "quantity": 1
+            },
+            {
+              "name": "netskin",
+              "sizeLabel": "big",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Moby Bebe",
+              "sizeLabel": "small",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Glycederm",
+              "sizeLabel": "small",
+              "priceXaf": 1000,
+              "quantity": 1
+            },
+            {
+              "name": "Rich & pure - serum",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Johnson's glycerin",
+              "sizeLabel": "small",
+              "priceXaf": 3000,
+              "quantity": 1
+            },
+            {
+              "name": "White secret - facial",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Rapid Clair - serum",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 2
+            },
+            {
+              "name": "Face towel",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "name": "Lotions & Creams",
+          "products": [
+            {
+              "name": "Lait Doucruse",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Paw paw lait",
+              "sizeLabel": "",
+              "priceXaf": 3000,
+              "quantity": 1
+            },
+            {
+              "name": "Dovena Lait",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "Rapid clair Carotte",
+              "sizeLabel": "biggest",
+              "priceXaf": 3000,
+              "quantity": 1
+            },
+            {
+              "name": "Famio - lait de toilette",
+              "sizeLabel": "biggest",
+              "priceXaf": 2000,
+              "quantity": 2
+            },
+            {
+              "name": "Carotina",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "epidem cream",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 3
+            },
+            {
+              "name": "Lemovate Cream",
+              "sizeLabel": "",
+              "priceXaf": 600,
+              "quantity": 3
+            },
+            {
+              "name": "Neoskin cream",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 2
+            },
+            {
+              "name": "CIVIC lemon cream",
+              "sizeLabel": "",
+              "priceXaf": 600,
+              "quantity": 3
+            },
+            {
+              "name": "Neutrotone",
+              "sizeLabel": "",
+              "priceXaf": 600,
+              "quantity": 2
+            },
+            {
+              "name": "Caro white cream",
+              "sizeLabel": "",
+              "priceXaf": 600,
+              "quantity": 2
+            },
+            {
+              "name": "Temosol",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 4
+            },
+            {
+              "name": "Idole",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 2
+            },
+            {
+              "name": "Herbicine",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Abana face cream",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 1
+            },
+            {
+              "name": "Orbi 20 face cream",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 2
+            },
+            {
+              "name": "Parley face cream",
+              "sizeLabel": "",
+              "priceXaf": 3000,
+              "quantity": 1
+            },
+            {
+              "name": "Eclait jour face cream",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 1
+            },
+            {
+              "name": "Efficase body lotion",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 11
+            },
+            {
+              "name": "Cute & white - moisturizer, serum",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 16
+            },
+            {
+              "name": "Sivoderm cream",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 2
+            },
+            {
+              "name": "Correcture Universal lotion, etape 2",
+              "sizeLabel": "",
+              "priceXaf": 1200,
+              "quantity": 2
+            },
+            {
+              "name": "Fresh activator l'eclait",
+              "sizeLabel": "",
+              "priceXaf": 1200,
+              "quantity": 1
+            },
+            {
+              "name": "African Queen - Lait",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 3
+            },
+            {
+              "name": "Famio - lait de toilette",
+              "sizeLabel": "medium",
+              "priceXaf": 1000,
+              "quantity": 1
+            },
+            {
+              "name": "Rezo Lotion",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 11
+            },
+            {
+              "name": "Carotone black spot corrector",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 2
+            },
+            {
+              "name": "Style clair creme",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 2
+            },
+            {
+              "name": "Yupi - body milk, lait",
+              "sizeLabel": "",
+              "priceXaf": 2500,
+              "quantity": 1
+            },
+            {
+              "name": "Bio eclaite light",
+              "sizeLabel": "",
+              "priceXaf": 3000,
+              "quantity": 1
+            },
+            {
+              "name": "Joly lait",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "White Secret cream  - cup",
+              "sizeLabel": "small",
+              "priceXaf": 1500,
+              "quantity": 2
+            },
+            {
+              "name": "white secret lotion",
+              "sizeLabel": "small",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "white secret lotion",
+              "sizeLabel": "medium",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "white secret lotion",
+              "sizeLabel": "big",
+              "priceXaf": 3000,
+              "quantity": 1
+            },
+            {
+              "name": "Veet Cream",
+              "sizeLabel": "",
+              "priceXaf": 2500,
+              "quantity": 1
+            },
+            {
+              "name": "Jet cream",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 2
+            },
+            {
+              "name": "Grace lait",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 3
+            },
+            {
+              "name": "Caro light lait",
+              "sizeLabel": "",
+              "priceXaf": 1700,
+              "quantity": 1
+            },
+            {
+              "name": "White now - Lait",
+              "sizeLabel": "biggest",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "Style clair - lait",
+              "sizeLabel": "",
+              "priceXaf": 2500,
+              "quantity": 2
+            },
+            {
+              "name": "Peau jaune - Lait",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Lamo - lait",
+              "sizeLabel": "",
+              "priceXaf": 700,
+              "quantity": 1
+            },
+            {
+              "name": "Johnson's Baby  - Lait",
+              "sizeLabel": "big",
+              "priceXaf": 4000,
+              "quantity": 2
+            },
+            {
+              "name": "Rapid clair Carotte  - lait",
+              "sizeLabel": "small",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "Baby Juan - lait",
+              "sizeLabel": "",
+              "priceXaf": 2500,
+              "quantity": 2
+            },
+            {
+              "name": "Nivea  - lait",
+              "sizeLabel": "big",
+              "priceXaf": 4500,
+              "quantity": 3
+            },
+            {
+              "name": "Nivea  - Lait",
+              "sizeLabel": "small",
+              "priceXaf": 3000,
+              "quantity": 1
+            },
+            {
+              "name": "Neoskin  - lait",
+              "sizeLabel": "big",
+              "priceXaf": 3000,
+              "quantity": 2
+            },
+            {
+              "name": "Rapid Clear  - lait",
+              "sizeLabel": "smallest",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Rapid Clear  - lait",
+              "sizeLabel": "medium",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "Rapid Clear  - lait",
+              "sizeLabel": "big",
+              "priceXaf": 2500,
+              "quantity": 2
+            },
+            {
+              "name": "Clairmen  - lait",
+              "sizeLabel": "biggest",
+              "priceXaf": 3000,
+              "quantity": 1
+            },
+            {
+              "name": "Clairmen - creme",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 4
+            },
+            {
+              "name": "Caro clair",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 2
+            },
+            {
+              "name": "Cladel - lait",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 2
+            },
+            {
+              "name": "Golden clear  - lait",
+              "sizeLabel": "big",
+              "priceXaf": 2500,
+              "quantity": 1
+            },
+            {
+              "name": "sivoderm - lait",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 1
+            },
+            {
+              "name": "Biorissme - lait",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 5
+            },
+            {
+              "name": "Carotone",
+              "sizeLabel": "big",
+              "priceXaf": 2000,
+              "quantity": 2
+            },
+            {
+              "name": "Carotone",
+              "sizeLabel": "small",
+              "priceXaf": 1000,
+              "quantity": 2
+            },
+            {
+              "name": "Precious  - lait",
+              "sizeLabel": "small",
+              "priceXaf": 2000,
+              "quantity": 2
+            },
+            {
+              "name": "Immediate claire",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "Caro light  -creme",
+              "sizeLabel": "medium",
+              "priceXaf": 1700,
+              "quantity": 4
+            },
+            {
+              "name": "Clairmen",
+              "sizeLabel": "medium",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "Brimo - Lait",
+              "sizeLabel": "",
+              "priceXaf": 1300,
+              "quantity": 1
+            },
+            {
+              "name": "Lotion Tonic",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 5
+            },
+            {
+              "name": "Body fashion cream",
+              "sizeLabel": "",
+              "priceXaf": 2500,
+              "quantity": 1
+            },
+            {
+              "name": "Cocoderm - Lait",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "name": "Hair Care",
+          "products": [
+            {
+              "name": "Dovena Shampoo",
+              "sizeLabel": "biggest",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "Henna Kone - (Lalleee)",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 1
+            },
+            {
+              "name": "Dovena Shampoo",
+              "sizeLabel": "small",
+              "priceXaf": 1000,
+              "quantity": 2
+            },
+            {
+              "name": "Series Hair Curl",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "Dexe haie dye- black",
+              "sizeLabel": "",
+              "priceXaf": 250,
+              "quantity": 8
+            },
+            {
+              "name": "Mega Growth - hair conditioner",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 10
+            },
+            {
+              "name": "Aloe vera gel",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "Terminator plus  - gel",
+              "sizeLabel": "medium",
+              "priceXaf": 3000,
+              "quantity": 1
+            },
+            {
+              "name": "Terminator plus  - gel",
+              "sizeLabel": "big",
+              "priceXaf": 3500,
+              "quantity": 1
+            },
+            {
+              "name": "Hair band",
+              "sizeLabel": "",
+              "priceXaf": 300,
+              "quantity": 8
+            },
+            {
+              "name": "Hair pins",
+              "sizeLabel": "",
+              "priceXaf": 100,
+              "quantity": 7
+            },
+            {
+              "name": "Crystal black hair shampoo",
+              "sizeLabel": "",
+              "priceXaf": 200,
+              "quantity": 5
+            },
+            {
+              "name": "Subaru black hair dye",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 9
+            },
+            {
+              "name": "So-fine gel - black & white",
+              "sizeLabel": "",
+              "priceXaf": 600,
+              "quantity": 2
+            }
+          ]
+        },
+        {
+          "name": "Uncategorized",
+          "products": [
+            {
+              "name": "Peau de lune",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 2
+            },
+            {
+              "name": "collagen gummies",
+              "sizeLabel": "",
+              "priceXaf": 7000,
+              "quantity": 1
+            },
+            {
+              "name": "Vigor Toothpaste",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 5
+            },
+            {
+              "name": "Colgate toothpaste",
+              "sizeLabel": "biggest",
+              "priceXaf": 1300,
+              "quantity": 3
+            },
+            {
+              "name": "Colgate toothpaste",
+              "sizeLabel": "smallest",
+              "priceXaf": 400,
+              "quantity": 3
+            },
+            {
+              "name": "Sephora",
+              "sizeLabel": "small",
+              "priceXaf": 1700,
+              "quantity": 1
+            },
+            {
+              "name": "Dudu-Osun",
+              "sizeLabel": "",
+              "priceXaf": 600,
+              "quantity": 5
+            },
+            {
+              "name": "Caro Fresh",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 1
+            },
+            {
+              "name": "Piment doux",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 6
+            },
+            {
+              "name": "Cute & white - Vitamin E & C",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 5
+            },
+            {
+              "name": "Vigor Doctor Pain Relief - Deep Heat",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 1
+            },
+            {
+              "name": "Cortex",
+              "sizeLabel": "",
+              "priceXaf": 400,
+              "quantity": 4
+            },
+            {
+              "name": "Action Miracle - Eclat",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "Flat tommy tea",
+              "sizeLabel": "",
+              "priceXaf": 5000,
+              "quantity": 1
+            },
+            {
+              "name": "Fat burner",
+              "sizeLabel": "",
+              "priceXaf": 6000,
+              "quantity": 1
+            },
+            {
+              "name": "Long Riche toothpaste",
+              "sizeLabel": "biggest",
+              "priceXaf": 4000,
+              "quantity": 4
+            },
+            {
+              "name": "Long Riche toothpaste",
+              "sizeLabel": "small",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "African panaxia",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 12
+            },
+            {
+              "name": "Just Natural",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 11
+            },
+            {
+              "name": "Floris duo",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "Gas lighter",
+              "sizeLabel": "",
+              "priceXaf": 100,
+              "quantity": 7
+            },
+            {
+              "name": "Pump - size 4",
+              "sizeLabel": "",
+              "priceXaf": 600,
+              "quantity": 3
+            },
+            {
+              "name": "Nursing caps",
+              "sizeLabel": "",
+              "priceXaf": 100,
+              "quantity": 30
+            },
+            {
+              "name": "Eclat total",
+              "sizeLabel": "",
+              "priceXaf": 4500,
+              "quantity": 1
+            },
+            {
+              "name": "Longrich mosquito repellant",
+              "sizeLabel": "",
+              "priceXaf": 4000,
+              "quantity": 1
+            },
+            {
+              "name": "Sublime eclat",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 2
+            },
+            {
+              "name": "Easy light",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "Stay white",
+              "sizeLabel": "",
+              "priceXaf": 2500,
+              "quantity": 1
+            },
+            {
+              "name": "B.B clear",
+              "sizeLabel": "small",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "B.B. Clear",
+              "sizeLabel": "big",
+              "priceXaf": 3000,
+              "quantity": 1
+            },
+            {
+              "name": "medimix",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 1
+            },
+            {
+              "name": "42 heures",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 2
+            },
+            {
+              "name": "Golden clear",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 2
+            },
+            {
+              "name": "Pretty white - cup",
+              "sizeLabel": "",
+              "priceXaf": 2500,
+              "quantity": 2
+            },
+            {
+              "name": "B light",
+              "sizeLabel": "biggest",
+              "priceXaf": 4000,
+              "quantity": 1
+            },
+            {
+              "name": "B light",
+              "sizeLabel": "small",
+              "priceXaf": 3000,
+              "quantity": 2
+            },
+            {
+              "name": "Teint Banane 7 jour",
+              "sizeLabel": "",
+              "priceXaf": 3000,
+              "quantity": 1
+            },
+            {
+              "name": "Juan",
+              "sizeLabel": "small",
+              "priceXaf": 2500,
+              "quantity": 1
+            },
+            {
+              "name": "Talangai",
+              "sizeLabel": "small",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "White Secret - Cup",
+              "sizeLabel": "big",
+              "priceXaf": 2500,
+              "quantity": 2
+            },
+            {
+              "name": "Silver Line",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 1
+            },
+            {
+              "name": "42 heures - creme",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Abro Air fresher",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 2
+            },
+            {
+              "name": "Vitamin E capsule",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 1
+            },
+            {
+              "name": "Citroclear",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "Tony montana - perfurme",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 2
+            },
+            {
+              "name": "Super white",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 2
+            },
+            {
+              "name": "Caro Care",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Terminator creme",
+              "sizeLabel": "",
+              "priceXaf": 2500,
+              "quantity": 1
+            },
+            {
+              "name": "Radiance creme",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "72 heures",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 3
+            },
+            {
+              "name": "caro white  - creme",
+              "sizeLabel": "biggest",
+              "priceXaf": 2500,
+              "quantity": 2
+            },
+            {
+              "name": "Bettina",
+              "sizeLabel": "",
+              "priceXaf": 1700,
+              "quantity": 1
+            },
+            {
+              "name": "Lemon creme",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "Caro white",
+              "sizeLabel": "smallest",
+              "priceXaf": 1000,
+              "quantity": 6
+            },
+            {
+              "name": "Clinic Clear",
+              "sizeLabel": "",
+              "priceXaf": 2500,
+              "quantity": 1
+            },
+            {
+              "name": "sellotape",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 4
+            },
+            {
+              "name": "Donlop",
+              "sizeLabel": "",
+              "priceXaf": 50,
+              "quantity": 20
+            },
+            {
+              "name": "Super glue",
+              "sizeLabel": "",
+              "priceXaf": 100,
+              "quantity": 6
+            },
+            {
+              "name": "Softcare Diapers",
+              "sizeLabel": "",
+              "priceXaf": 100,
+              "quantity": 81
+            },
+            {
+              "name": "Shopping bags",
+              "sizeLabel": "",
+              "priceXaf": 150,
+              "quantity": 12
+            },
+            {
+              "name": "Choco cube bon bon",
+              "sizeLabel": "",
+              "priceXaf": 50,
+              "quantity": 17
+            },
+            {
+              "name": "net caps",
+              "sizeLabel": "",
+              "priceXaf": 200,
+              "quantity": 9
+            },
+            {
+              "name": "rubbers",
+              "sizeLabel": "",
+              "priceXaf": 100,
+              "quantity": 8
+            },
+            {
+              "name": "Ndomo ndomo",
+              "sizeLabel": "",
+              "priceXaf": 250,
+              "quantity": 10
+            },
+            {
+              "name": "plane",
+              "sizeLabel": "20L",
+              "priceXaf": 150,
+              "quantity": 10
+            },
+            {
+              "name": "Bath towel",
+              "sizeLabel": "",
+              "priceXaf": 200,
+              "quantity": 8
+            },
+            {
+              "name": "Paper Napkin",
+              "sizeLabel": "",
+              "priceXaf": 100,
+              "quantity": 20
+            },
+            {
+              "name": "mail envelopes",
+              "sizeLabel": "",
+              "priceXaf": 100,
+              "quantity": 13
+            },
+            {
+              "name": "Pencils",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 4
+            },
+            {
+              "name": "Earings",
+              "sizeLabel": "Small",
+              "priceXaf": 100,
+              "quantity": 17
+            },
+            {
+              "name": "Needles",
+              "sizeLabel": "big",
+              "priceXaf": 1250,
+              "quantity": 5
+            },
+            {
+              "name": "Needles",
+              "sizeLabel": "small",
+              "priceXaf": 500,
+              "quantity": 10
+            },
+            {
+              "name": "Nose rings",
+              "sizeLabel": "small",
+              "priceXaf": 100,
+              "quantity": 17
+            },
+            {
+              "name": "G Nose rings",
+              "sizeLabel": "big",
+              "priceXaf": 250,
+              "quantity": 5
+            },
+            {
+              "name": "G.L Earing",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 1
+            },
+            {
+              "name": "Bic",
+              "sizeLabel": "",
+              "priceXaf": 150,
+              "quantity": 23
+            },
+            {
+              "name": "Bicarbonates",
+              "sizeLabel": "",
+              "priceXaf": 100,
+              "quantity": 7
+            },
+            {
+              "name": "Toothbrush, colgate,",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 13
+            },
+            {
+              "name": "Pamedo",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 1
+            },
+            {
+              "name": "bandage",
+              "sizeLabel": "small",
+              "priceXaf": 50,
+              "quantity": 90
+            },
+            {
+              "name": "Dallas product",
+              "sizeLabel": "",
+              "priceXaf": 600,
+              "quantity": 2
+            },
+            {
+              "name": "liquid polish",
+              "sizeLabel": "",
+              "priceXaf": 700,
+              "quantity": 1
+            },
+            {
+              "name": "Black sellotape",
+              "sizeLabel": "",
+              "priceXaf": 200,
+              "quantity": 7
+            },
+            {
+              "name": "shoe brush",
+              "sizeLabel": "",
+              "priceXaf": 250,
+              "quantity": 1
+            },
+            {
+              "name": "Preest - B toothbrush",
+              "sizeLabel": "",
+              "priceXaf": 700,
+              "quantity": 2
+            },
+            {
+              "name": "Camphor",
+              "sizeLabel": "",
+              "priceXaf": 150,
+              "quantity": 6
+            },
+            {
+              "name": "sewing thread",
+              "sizeLabel": "",
+              "priceXaf": 100,
+              "quantity": 8
+            },
+            {
+              "name": "sewing thread (special)",
+              "sizeLabel": "",
+              "priceXaf": 150,
+              "quantity": 3
+            },
+            {
+              "name": "Moon tiger",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 23
+            },
+            {
+              "name": "Uninope wipes",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 4
+            },
+            {
+              "name": "Softcare wipes",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 2
+            },
+            {
+              "name": "Mentholata",
+              "sizeLabel": "",
+              "priceXaf": 100,
+              "quantity": 8
+            },
+            {
+              "name": "Toothbrush - basic",
+              "sizeLabel": "",
+              "priceXaf": 300,
+              "quantity": 8
+            },
+            {
+              "name": "Mentholion",
+              "sizeLabel": "small",
+              "priceXaf": 100,
+              "quantity": 40
+            },
+            {
+              "name": "Pant liners",
+              "sizeLabel": "",
+              "priceXaf": 2500,
+              "quantity": 2
+            },
+            {
+              "name": "Sea salt",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 1
+            },
+            {
+              "name": "Toothbrush",
+              "sizeLabel": "small",
+              "priceXaf": 150,
+              "quantity": 11
+            },
+            {
+              "name": "Candles",
+              "sizeLabel": "",
+              "priceXaf": 100,
+              "quantity": 16
+            },
+            {
+              "name": "9w led bulbs",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 5
+            },
+            {
+              "name": "Toothpics",
+              "sizeLabel": "",
+              "priceXaf": 100,
+              "quantity": 8
+            },
+            {
+              "name": "Dental Pro",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 3
+            },
+            {
+              "name": "Childrens toothbrush",
+              "sizeLabel": "",
+              "priceXaf": 150,
+              "quantity": 12
+            },
+            {
+              "name": "Uninope pads",
+              "sizeLabel": "",
+              "priceXaf": 700,
+              "quantity": 5
+            },
+            {
+              "name": "Tiof Mouchoir",
+              "sizeLabel": "",
+              "priceXaf": 100,
+              "quantity": 9
+            },
+            {
+              "name": "Bicarbonate",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 1
+            },
+            {
+              "name": "Softcare pad",
+              "sizeLabel": "",
+              "priceXaf": 700,
+              "quantity": 5
+            },
+            {
+              "name": "Wathsapp gum",
+              "sizeLabel": "",
+              "priceXaf": 100,
+              "quantity": 16
+            },
+            {
+              "name": "Bleach Eau de javel",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 2
+            },
+            {
+              "name": "fertex pad",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "umbrellas",
+              "sizeLabel": "big",
+              "priceXaf": 2500,
+              "quantity": 2
+            },
+            {
+              "name": "umbrellas",
+              "sizeLabel": "small",
+              "priceXaf": 1000,
+              "quantity": 3
+            },
+            {
+              "name": "umbrellas (special)",
+              "sizeLabel": "",
+              "priceXaf": 3000,
+              "quantity": 2
+            },
+            {
+              "name": "Swiss air fresher",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "name": "Perfumes & Deodorants",
+          "products": [
+            {
+              "name": "Glycerin Parfume",
+              "sizeLabel": "medium",
+              "priceXaf": 1000,
+              "quantity": 4
+            },
+            {
+              "name": "Glycerin parfume",
+              "sizeLabel": "small",
+              "priceXaf": 600,
+              "quantity": 2
+            },
+            {
+              "name": "Glycerin parfume",
+              "sizeLabel": "biggest",
+              "priceXaf": 1500,
+              "quantity": 2
+            },
+            {
+              "name": "Soft Perfume",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 9
+            },
+            {
+              "name": "Vanilla crush - perfume",
+              "sizeLabel": "",
+              "priceXaf": 2500,
+              "quantity": 1
+            },
+            {
+              "name": "Erato - perfume",
+              "sizeLabel": "",
+              "priceXaf": 1700,
+              "quantity": 1
+            },
+            {
+              "name": "Nigerian - perfume",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 4
+            },
+            {
+              "name": "Eau de cologne",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Pharmaceuticals",
+      "subcategories": [
+        {
+          "name": "Medications",
+          "products": [
+            {
+              "name": "Implanon",
+              "sizeLabel": "",
+              "priceXaf": 5000,
+              "quantity": 7
+            },
+            {
+              "name": "Griseofulvin Cream",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 2
+            },
+            {
+              "name": "Benzathine injection",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 6
+            },
+            {
+              "name": "Ceftriazone injection",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 50
+            },
+            {
+              "name": "Fleming",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 2
+            },
+            {
+              "name": "Cold cap",
+              "sizeLabel": "",
+              "priceXaf": 200,
+              "quantity": 18
+            },
+            {
+              "name": "Super Apetite",
+              "sizeLabel": "",
+              "priceXaf": 300,
+              "quantity": 10
+            },
+            {
+              "name": "Paracetamol",
+              "sizeLabel": "",
+              "priceXaf": 100,
+              "quantity": 49
+            },
+            {
+              "name": "Zentith F",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 2
+            },
+            {
+              "name": "Amox syrup - Amozlyn",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 4
+            },
+            {
+              "name": "Efferalgan syrup",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 2
+            },
+            {
+              "name": "cloxacillin syrup",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 2
+            },
+            {
+              "name": "Metro syrup",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 4
+            },
+            {
+              "name": "Artemether sytup",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 3
+            },
+            {
+              "name": "Nystatin syrup",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Carbocistein syrup",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Quinine tablet",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 3
+            },
+            {
+              "name": "Efferalgan tablet",
+              "sizeLabel": "",
+              "priceXaf": 100,
+              "quantity": 80
+            },
+            {
+              "name": "Bimalaril syrup",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "Litacold syrup",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Fluconazole syrup",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 3
+            },
+            {
+              "name": "Dexacure - tablet",
+              "sizeLabel": "",
+              "priceXaf": 100,
+              "quantity": 10
+            },
+            {
+              "name": "Sulfadoxine tablets",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 47
+            },
+            {
+              "name": "Azythromycine",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Dolonel",
+              "sizeLabel": "",
+              "priceXaf": 800,
+              "quantity": 6
+            },
+            {
+              "name": "Lipadol tablets",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 12
+            },
+            {
+              "name": "Spasfon",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 7
+            },
+            {
+              "name": "Metformine",
+              "sizeLabel": "",
+              "priceXaf": 400,
+              "quantity": 10
+            },
+            {
+              "name": "Nystatin tablet",
+              "sizeLabel": "",
+              "priceXaf": 800,
+              "quantity": 3
+            },
+            {
+              "name": "Griseofulvin tablets",
+              "sizeLabel": "",
+              "priceXaf": 1300,
+              "quantity": 3
+            },
+            {
+              "name": "Ketoconazole",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Coatrim",
+              "sizeLabel": "",
+              "priceXaf": 250,
+              "quantity": 3
+            },
+            {
+              "name": "Predicure",
+              "sizeLabel": "",
+              "priceXaf": 200,
+              "quantity": 6
+            },
+            {
+              "name": "Bisacure",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 4
+            },
+            {
+              "name": "Promethazine",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 4
+            },
+            {
+              "name": "Omeprazole - injection",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 1
+            },
+            {
+              "name": "Mectizan",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 40
+            },
+            {
+              "name": "Diclofenac tablets",
+              "sizeLabel": "",
+              "priceXaf": 100,
+              "quantity": 44
+            },
+            {
+              "name": "Tot'hema injection",
+              "sizeLabel": "",
+              "priceXaf": 400,
+              "quantity": 20
+            },
+            {
+              "name": "Gentamicine",
+              "sizeLabel": "",
+              "priceXaf": 700,
+              "quantity": 4
+            },
+            {
+              "name": "Metronidazole",
+              "sizeLabel": "250mg",
+              "priceXaf": 200,
+              "quantity": 7
+            },
+            {
+              "name": "Amoxicillin tablet",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 8
+            },
+            {
+              "name": "vogalene suppo",
+              "sizeLabel": "",
+              "priceXaf": 300,
+              "quantity": 9
+            },
+            {
+              "name": "Mebendazole syrup",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 5
+            },
+            {
+              "name": "Ranferon",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 3
+            },
+            {
+              "name": "Arthemether /",
+              "sizeLabel": "20mg",
+              "priceXaf": 1000,
+              "quantity": 3
+            },
+            {
+              "name": "Omeprazole - capsule",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 7
+            },
+            {
+              "name": "Cloxacillin capsule",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 6
+            },
+            {
+              "name": "Albendazole - helben",
+              "sizeLabel": "",
+              "priceXaf": 200,
+              "quantity": 15
+            },
+            {
+              "name": "Ceftriazone tablets",
+              "sizeLabel": "750mg",
+              "priceXaf": 1500,
+              "quantity": 4
+            },
+            {
+              "name": "Metronidazole",
+              "sizeLabel": "500mg",
+              "priceXaf": 400,
+              "quantity": 9
+            },
+            {
+              "name": "Arthemether injection",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 6
+            },
+            {
+              "name": "Diclofenac injection",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 60
+            },
+            {
+              "name": "cloxacillin injection",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 15
+            },
+            {
+              "name": "Artesunate - injection",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 2
+            },
+            {
+              "name": "Oxytocine - injection",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 9
+            },
+            {
+              "name": "Cimetedine - injection",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 3
+            },
+            {
+              "name": "Quinine - injection",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 8
+            },
+            {
+              "name": "fluconazole - capsule",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 2
+            },
+            {
+              "name": "Tetanus injection",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 2
+            },
+            {
+              "name": "Doxycycline",
+              "sizeLabel": "200mg",
+              "priceXaf": 1000,
+              "quantity": 1
+            },
+            {
+              "name": "Apetamax",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 4
+            },
+            {
+              "name": "Tetracycline",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 7
+            },
+            {
+              "name": "Gentamycine - injection",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 16
+            },
+            {
+              "name": "Cefixime",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 3
+            },
+            {
+              "name": "Dexa - injection",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 2
+            },
+            {
+              "name": "Doxycycline",
+              "sizeLabel": "100mg",
+              "priceXaf": 500,
+              "quantity": 7
+            },
+            {
+              "name": "Maalox",
+              "sizeLabel": "",
+              "priceXaf": 200,
+              "quantity": 6
+            },
+            {
+              "name": "Frusemide",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 17
+            },
+            {
+              "name": "Dexa en boite",
+              "sizeLabel": "",
+              "priceXaf": 700,
+              "quantity": 2
+            },
+            {
+              "name": "Analgin - injection",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 41
+            }
+          ]
+        },
+        {
+          "name": "Baby Care",
+          "products": [
+            {
+              "name": "Children's motrine",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 2
+            }
+          ]
+        },
+        {
+          "name": "First Aid",
+          "products": [
+            {
+              "name": "Betadine",
+              "sizeLabel": "",
+              "priceXaf": 1500,
+              "quantity": 2
+            }
+          ]
+        },
+        {
+          "name": "Supplements",
+          "products": [
+            {
+              "name": "Vitamin K - injection",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 8
+            },
+            {
+              "name": "Vitamin B complex - injection",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 62
+            },
+            {
+              "name": "Calcium magnesium - calcimax",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 2
+            },
+            {
+              "name": "Krishat - COD liver oil",
+              "sizeLabel": "",
+              "priceXaf": 2000,
+              "quantity": 1
+            },
+            {
+              "name": "Vitamin C - injection",
+              "sizeLabel": "",
+              "priceXaf": 500,
+              "quantity": 7
+            },
+            {
+              "name": "Calcium & Magnesium",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 4
+            }
+          ]
+        },
+        {
+          "name": "Medical Devices",
+          "products": [
+            {
+              "name": "Malaria test",
+              "sizeLabel": "",
+              "priceXaf": 1000,
+              "quantity": 12
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

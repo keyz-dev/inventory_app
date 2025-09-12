@@ -41,6 +41,26 @@ class SyncService {
     return { ...this.syncState };
   }
 
+  // Update sync configuration (stub implementation)
+  updateConfig(newConfig: Partial<SyncConfig>): void {
+    this.config = { ...this.config, ...newConfig };
+  }
+
+  // Get current configuration
+  getConfig(): SyncConfig {
+    return { ...this.config };
+  }
+
+  // Resolve conflict (stub implementation)
+  async resolveConflict(conflictId: string, resolution: 'local' | 'remote' | 'merge'): Promise<void> {
+    throw new Error('Conflict resolution not implemented in base sync service');
+  }
+
+  // Get pending conflicts (stub implementation)
+  getPendingConflicts(): SyncConflict[] {
+    return [];
+  }
+
   // Subscribe to sync state changes
   subscribe(listener: (state: SyncState) => void): () => void {
     this.syncListeners.push(listener);

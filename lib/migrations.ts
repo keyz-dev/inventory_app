@@ -5,6 +5,7 @@ export type Migration = {
   id: number; // increasing integer id
   name: string;
   up: string; // SQL to apply
+  seedFunction?: () => Promise<void>; // Optional function for data seeding
 };
 
 export const migrations: Migration[] = [
@@ -124,6 +125,24 @@ export const migrations: Migration[] = [
       -- Update schema version
       INSERT OR REPLACE INTO meta(key, value) VALUES ('schema_version', '2');
     `,
+  },
+  {
+    id: 3,
+    name: 'seed_initial_inventory_data',
+    up: `
+      -- This migration seeds the initial inventory data
+      -- It will only run once due to the migration system's versioning
+      
+      -- The actual seeding logic is handled by the seedFunction
+      -- This SQL just updates the schema version
+      
+      -- Update schema version to track this migration
+      INSERT OR REPLACE INTO meta(key, value) VALUES ('schema_version', '3');
+    `,
+    seedFunction: async () => {
+      const { runSeedMigration } = await import('./migration/seed_inventory');
+      await runSeedMigration();
+    },
   },
 ];
 

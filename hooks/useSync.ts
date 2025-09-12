@@ -83,11 +83,47 @@ export function useSync(config?: Partial<SyncConfig>) {
     return syncServiceInstance.getState();
   }, [syncState]);
 
+  // Update sync configuration
+  const updateConfig = useCallback((newConfig: Partial<SyncConfig>) => {
+    if (!syncServiceInstance) {
+      throw new Error('Sync service not initialized');
+    }
+    syncServiceInstance.updateConfig(newConfig);
+  }, []);
+
+  // Get current configuration
+  const getConfig = useCallback((): SyncConfig | null => {
+    if (!syncServiceInstance) {
+      return null;
+    }
+    return syncServiceInstance.getConfig();
+  }, []);
+
+  // Resolve conflict
+  const resolveConflict = useCallback(async (conflictId: string, resolution: 'local' | 'remote' | 'merge') => {
+    if (!syncServiceInstance) {
+      throw new Error('Sync service not initialized');
+    }
+    return syncServiceInstance.resolveConflict(conflictId, resolution);
+  }, []);
+
+  // Get pending conflicts
+  const getPendingConflicts = useCallback(() => {
+    if (!syncServiceInstance) {
+      return [];
+    }
+    return syncServiceInstance.getPendingConflicts();
+  }, []);
+
   return {
     syncState,
     isInitialized,
     syncNow,
     queueOperation,
-    getState
+    getState,
+    updateConfig,
+    getConfig,
+    resolveConflict,
+    getPendingConflicts
   };
 }

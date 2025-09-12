@@ -23,7 +23,7 @@ function getSchemaVersion(db: SQLite.SQLiteDatabase): number {
   }
 }
 
-export function runMigrations(): void {
+export async function runMigrations(): Promise<void> {
   const db = getDb();
   db.execSync('PRAGMA foreign_keys = ON;');
 
@@ -36,11 +36,28 @@ export function runMigrations(): void {
   for (const m of pending) {
     db.execSync('BEGIN');
     try {
+      // Run the SQL migration
       db.execSync(m.up);
+      
+      // Run the seed function if it exists
+      if (m.seedFunction) {
+        await m.seedFunction();
+      }
+      
       db.execSync(`INSERT OR REPLACE INTO meta(key, value) VALUES ('schema_version', '${m.id}');`);
       db.execSync('COMMIT');
     } catch (e) {
       db.execSync('ROLLBACK');
+      console.error('Migration failed:', e);
+      
+      // In development, if we have a schema mismatch, reset the database
+      if (__DEV__ && e instanceof Error && e.message.includes('no column named')) {
+        console.warn('Schema mismatch detected. Resetting database in development mode...');
+        resetDatabase();
+        // Retry the migration with a fresh database
+        return runMigrations();
+      }
+      
       throw e;
     }
   }
@@ -73,6 +90,14 @@ export function getFirst<T = any>(sql: string, params: any[] = []): T | null {
   const db = getDb();
   const res = db.getFirstSync<T>(sql, params as any);
   return (res as any) ?? null;
+}
+
+export function resetDatabase(): void {
+  if (database) {
+    database.closeSync();
+    database = null;
+  }
+  // The database will be recreated on next getDb() call
 }
 
 

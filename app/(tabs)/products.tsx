@@ -4,8 +4,10 @@ import { ProductList } from '@/components/products/ProductList';
 import { ProductsFilters } from '@/components/products/ProductsFilters';
 import { Screen } from '@/components/Screen';
 import { ThemedText } from '@/components/ThemedText';
+import { useSettings } from '@/contexts/SettingsContext';
 import { createProduct, deleteProduct, updateProduct } from '@/data/productManagementRepo';
 import { useProducts } from '@/hooks/useProducts';
+import { useSync } from '@/hooks/useSync';
 import { Product } from '@/types/domain';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -27,28 +29,65 @@ export default function ProductsScreen() {
     hasMore,
     pagination
   } = useProducts(true); // Enable pagination
+  const { showSettings } = useSettings();
+  
+  const { queueOperation } = useSync(); // Add sync functionality
+  
   const [showProductForm, setShowProductForm] = useState(false);
   const [showBulkImport, setShowBulkImport] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [highlightedProductId, setHighlightedProductId] = useState<string | null>(null);
   const flatListRef = useRef<any>(null);
 
-  const handleCreateProduct = (data: any) => {
+  const handleCreateProduct = async (data: any) => {
     try {
-      createProduct(data);
+      const product = createProduct(data);
       reload();
+      
+      // Queue sync operation for the created product
+      try {
+        await queueOperation('product', 'create', {
+          id: product.id,
+          name: product.name,
+          priceXaf: product.priceXaf,
+          quantity: product.quantity,
+          sizeLabel: product.sizeLabel,
+          variantOfId: product.variantOfId,
+          categoryId: product.categoryId
+        });
+      } catch (syncError) {
+        // Don't show error to user - the product was created successfully
+        // Sync will retry automatically
+      }
+      
       Alert.alert('Success', 'Product created successfully');
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'Failed to create product');
     }
   };
 
-  const handleUpdateProduct = (data: any) => {
+  const handleUpdateProduct = async (data: any) => {
     if (!selectedProduct) return;
     
     try {
-      updateProduct(selectedProduct.id, data);
+      const updatedProduct = updateProduct(selectedProduct.id, data);
       reload();
+      
+      // Queue sync operation for the updated product
+      try {
+        await queueOperation('product', 'update', {
+          id: updatedProduct.id,
+          name: updatedProduct.name,
+          priceXaf: updatedProduct.priceXaf,
+          quantity: updatedProduct.quantity,
+          sizeLabel: updatedProduct.sizeLabel,
+          variantOfId: updatedProduct.variantOfId,
+          categoryId: updatedProduct.categoryId
+        });
+      } catch (syncError) {
+        // Don't show error to user - sync will retry automatically
+      }
+      
       Alert.alert('Success', 'Product updated successfully');
     } catch (error) {
       Alert.alert('Error', error instanceof Error ? error.message : 'Failed to update product');
@@ -64,10 +103,26 @@ export default function ProductsScreen() {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => {
+          onPress: async () => {
             try {
               deleteProduct(product.id);
               reload();
+              
+              // Queue sync operation for the deleted product
+              try {
+                await queueOperation('product', 'delete', {
+                  id: product.id,
+                  name: product.name,
+                  priceXaf: product.priceXaf,
+                  quantity: product.quantity,
+                  sizeLabel: product.sizeLabel,
+                  variantOfId: product.variantOfId,
+                  categoryId: product.categoryId
+                });
+              } catch (syncError) {
+                // Don't show error to user - sync will retry automatically
+              }
+              
               Alert.alert('Success', 'Product deleted successfully');
             } catch (error) {
               Alert.alert('Error', error instanceof Error ? error.message : 'Failed to delete product');
@@ -174,7 +229,13 @@ export default function ProductsScreen() {
   );
 
   return (
-    <Screen title="Products">
+    <Screen 
+      title="Products" 
+      rightHeaderAction={{
+        icon: 'settings',
+        onPress: showSettings
+      }}
+    >
       <View style={styles.container}>
         {/* Action Buttons */}
         <View style={styles.actionBar}>

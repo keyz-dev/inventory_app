@@ -7,20 +7,22 @@ import { EnhancedButton } from '@/components/ui/EnhancedButton';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { formatXAF } from '@/constants/Currency';
 import { Colors } from '@/constants/DesignSystem';
+import { useSettings } from '@/contexts/SettingsContext';
 import {
-  getCategoryAnalytics,
-  getHourlySales,
-  getRevenueByPaymentMethod,
-  getSalesAnalytics,
-  getSalesTrend,
-  getStockAnalytics,
-  getTopProducts,
-  TimeRange,
+    getCategoryAnalytics,
+    getHourlySales,
+    getRevenueByPaymentMethod,
+    getSalesAnalytics,
+    getSalesTrend,
+    getStockAnalytics,
+    getTopProducts,
+    TimeRange,
 } from '@/data/analyticsRepo';
 import React, { useEffect, useState } from 'react';
 import { Alert, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function AnalyticsScreen() {
+  const { showSettings } = useSettings();
   const [timeRange, setTimeRange] = useState<TimeRange>('month');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -90,7 +92,13 @@ export default function AnalyticsScreen() {
 
   if (loading) {
     return (
-      <Screen title="Analytics">
+      <Screen 
+        title="Analytics" 
+        rightHeaderAction={{
+          icon: 'settings',
+          onPress: showSettings
+        }}
+      >
         <View style={styles.loadingContainer}>
           <LoadingSpinner size="lg" />
           <Text style={styles.loadingText}>Loading analytics...</Text>
@@ -100,7 +108,13 @@ export default function AnalyticsScreen() {
   }
 
   return (
-    <Screen title="Analytics">
+    <Screen 
+      title="Analytics" 
+      rightHeaderAction={{
+        icon: 'settings',
+        onPress: showSettings
+      }}
+    >
       <ScrollView
         style={styles.container}
         refreshControl={

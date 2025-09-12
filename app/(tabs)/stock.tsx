@@ -2,6 +2,7 @@ import { Screen } from '@/components/Screen';
 import { StockAdjustmentForm } from '@/components/stock/StockAdjustmentForm';
 import { ThemedText } from '@/components/ThemedText';
 import { formatXAF } from '@/constants/Currency';
+import { useSettings } from '@/contexts/SettingsContext';
 import { getLowStockProducts, getStockSummary, recordStockAdjustment } from '@/data/stockRepo';
 import { useProducts } from '@/hooks/useProducts';
 import { Product } from '@/types/domain';
@@ -13,6 +14,7 @@ import { ActivityIndicator, Alert, FlatList, RefreshControl, StyleSheet, Touchab
 
 export default function StockScreen() {
   const { products, loading, loadingMore, loadMore, reload } = useProducts(true); // Enable pagination
+  const { showSettings } = useSettings();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showAdjustmentForm, setShowAdjustmentForm] = useState(false);
   const [stockSummary, setStockSummary] = useState({
@@ -234,7 +236,13 @@ export default function StockScreen() {
   );
 
   return (
-    <Screen title="Stock Management">
+    <Screen 
+      title="Stock Management" 
+      rightHeaderAction={{
+        icon: 'settings',
+        onPress: showSettings
+      }}
+    >
       <View style={styles.container}>
         {/* Search Bar */}
         <View style={styles.searchContainer}>

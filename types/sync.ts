@@ -22,6 +22,7 @@ export interface SyncConfig {
   maxRetries: number;
   batchSize: number;
   conflictResolution: 'local_wins' | 'remote_wins' | 'manual';
+  syncOnWiFiOnly: boolean; // If true, only sync on WiFi; if false, use mobile data
 }
 
 export interface SyncState {
@@ -72,6 +73,7 @@ export interface SyncPayload {
 
 export interface RemoteEntity {
   id: string;
+  entity: SyncEntity;
   data: any;
   updatedAt: string;
   deletedAt?: string;
