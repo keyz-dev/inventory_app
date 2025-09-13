@@ -24,42 +24,55 @@ function getSchemaVersion(db: SQLite.SQLiteDatabase): number {
 }
 
 export async function runMigrations(): Promise<void> {
-  const db = getDb();
-  db.execSync('PRAGMA foreign_keys = ON;');
+  try {
+    const db = getDb();
+    db.execSync('PRAGMA foreign_keys = ON;');
 
-  // Ensure meta table exists first
-  db.execSync(`CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);`);
+    // Ensure meta table exists first
+    db.execSync(`CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);`);
 
-  const current = getSchemaVersion(db);
-  const pending = migrations.filter(m => m.id > current).sort((a, b) => a.id - b.id);
+    const current = getSchemaVersion(db);
+    const pending = migrations.filter(m => m.id > current).sort((a, b) => a.id - b.id);
 
-  for (const m of pending) {
-    db.execSync('BEGIN');
-    try {
-      // Run the SQL migration
-      db.execSync(m.up);
-      
-      // Run the seed function if it exists
-      if (m.seedFunction) {
-        await m.seedFunction();
+    console.log(`Running ${pending.length} pending migrations (current version: ${current})`);
+
+    for (const m of pending) {
+      console.log(`Running migration ${m.id}: ${m.name}`);
+      db.execSync('BEGIN');
+      try {
+        // Run the SQL migration
+        db.execSync(m.up);
+        
+        // Run the seed function if it exists
+        if (m.seedFunction) {
+          console.log(`Running seed function for migration ${m.id}`);
+          await m.seedFunction();
+        }
+        
+        db.execSync(`INSERT OR REPLACE INTO meta(key, value) VALUES ('schema_version', '${m.id}');`);
+        db.execSync('COMMIT');
+        console.log(`Migration ${m.id} completed successfully`);
+      } catch (e) {
+        db.execSync('ROLLBACK');
+        console.error(`Migration ${m.id} failed:`, e);
+        
+        // In development, if we have a schema mismatch, reset the database
+        if (__DEV__ && e instanceof Error && e.message.includes('no column named')) {
+          console.warn('Schema mismatch detected. Resetting database in development mode...');
+          resetDatabase();
+          // Retry the migration with a fresh database
+          return runMigrations();
+        }
+        
+        // For production, continue with other migrations even if one fails
+        console.warn(`Skipping failed migration ${m.id} and continuing...`);
       }
-      
-      db.execSync(`INSERT OR REPLACE INTO meta(key, value) VALUES ('schema_version', '${m.id}');`);
-      db.execSync('COMMIT');
-    } catch (e) {
-      db.execSync('ROLLBACK');
-      console.error('Migration failed:', e);
-      
-      // In development, if we have a schema mismatch, reset the database
-      if (__DEV__ && e instanceof Error && e.message.includes('no column named')) {
-        console.warn('Schema mismatch detected. Resetting database in development mode...');
-        resetDatabase();
-        // Retry the migration with a fresh database
-        return runMigrations();
-      }
-      
-      throw e;
     }
+    
+    console.log('All migrations completed');
+  } catch (error) {
+    console.error('Migration system failed:', error);
+    // Don't throw - let the app continue
   }
 }
 

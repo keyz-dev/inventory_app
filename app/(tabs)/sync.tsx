@@ -5,7 +5,8 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { useCanManageSettings, useUser } from '@/contexts/UserContext';
 import { useSync } from '@/hooks/useSync';
 import { Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 
 export default function SyncScreen() {
@@ -14,6 +15,16 @@ export default function SyncScreen() {
   const { currentUser } = useUser();
   const canManageSettings = useCanManageSettings();
   const [isManualSyncing, setIsManualSyncing] = useState(false);
+  const router = useRouter();
+
+  // Redirect if user doesn't have permission
+  useFocusEffect(
+    useCallback(() => {
+      if (!canManageSettings) {
+        router.replace('/(tabs)/products');
+      }
+    }, [canManageSettings, router])
+  );
 
   const handleSyncPress = async () => {
     if (isManualSyncing) return;

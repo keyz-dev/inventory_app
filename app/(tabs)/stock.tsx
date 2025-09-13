@@ -28,8 +28,17 @@ export default function StockScreen() {
   });
   const [lowStockProducts, setLowStockProducts] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  const [highlightedProductId, setHighlightedProductId] = useState<string | null>(null);
   const router = useRouter();
+
+  // Redirect if user doesn't have permission
+  useFocusEffect(
+    useCallback(() => {
+      if (!canAdjustStock) {
+        router.replace('/(tabs)/products');
+      }
+    }, [canAdjustStock, router])
+  );
+  const [highlightedProductId, setHighlightedProductId] = useState<string | null>(null);
   const flatListRef = useRef<FlatList>(null);
 
   useEffect(() => {

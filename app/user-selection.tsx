@@ -123,7 +123,7 @@ export default function UserSelectionScreen() {
                 { backgroundColor: selectedRole === 'cashier' ? ROLE_COLORS.cashier : '#f3f4f6' }
               ]}>
                 <Ionicons 
-                  name="cash" 
+                  name="cash-outline" 
                   size={24} 
                   color={selectedRole === 'cashier' ? 'white' : '#6b7280'} 
                 />
@@ -149,7 +149,7 @@ export default function UserSelectionScreen() {
                 { backgroundColor: selectedRole === 'viewer' ? ROLE_COLORS.viewer : '#f3f4f6' }
               ]}>
                 <Ionicons 
-                  name="eye" 
+                  name="eye-outline" 
                   size={24} 
                   color={selectedRole === 'viewer' ? 'white' : '#6b7280'} 
                 />

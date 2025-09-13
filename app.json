@@ -12,11 +12,17 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.saintagnesmc.inventory",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo/logo.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -37,6 +43,17 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "8c243c2e-fb04-4ca5-b796-1a033b81df75"
+      },
+      "supabaseUrl": "https://ttlqqsqjldtslhhqfdpx.supabase.co",
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR0bHFxc3FqbGR0c2xoaHFmZHB4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc2NTgzNTMsImV4cCI6MjA3MzIzNDM1M30.IYOjv5v6d_Z3rw5lbsyq5EVM8xQ0zfB87MyVl6G3oNk",
+      "syncInterval": "15",
+      "maxRetries": "3",
+      "batchSize": "50"
     }
   }
 }

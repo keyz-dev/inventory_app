@@ -12,9 +12,9 @@ export const HeaderLogo: React.FC<HeaderLogoProps> = ({
   onPress 
 }) => {
   const logoSize = {
-    small: 32,
-    medium: 40,
-    large: 48,
+    small: 40,
+    medium: 48,
+    large: 56,
   }[size];
 
   const LogoComponent = (

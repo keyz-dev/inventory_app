@@ -10,15 +10,16 @@ import { Colors } from '@/constants/DesignSystem';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useCanViewAnalytics, useUser } from '@/contexts/UserContext';
 import {
-  getCategoryAnalytics,
-  getHourlySales,
-  getRevenueByPaymentMethod,
-  getSalesAnalytics,
-  getSalesTrend,
-  getStockAnalytics,
-  getTopProducts,
-  TimeRange,
+    getCategoryAnalytics,
+    getHourlySales,
+    getRevenueByPaymentMethod,
+    getSalesAnalytics,
+    getSalesTrend,
+    getStockAnalytics,
+    getTopProducts,
+    TimeRange,
 } from '@/data/analyticsRepo';
+import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -28,6 +29,16 @@ export default function AnalyticsScreen() {
   const canViewAnalytics = useCanViewAnalytics();
   const [timeRange, setTimeRange] = useState<TimeRange>('month');
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  // Redirect if user doesn't have permission
+  useFocusEffect(
+    useCallback(() => {
+      if (!canViewAnalytics) {
+        router.replace('/(tabs)/products');
+      }
+    }, [canViewAnalytics, router])
+  );
   const [refreshing, setRefreshing] = useState(false);
   
   // Analytics data

@@ -27,6 +27,15 @@ export default function SellScreen() {
   const canSell = useCanSell();
   const [highlightedProductId, setHighlightedProductId] = useState<string | null>(null);
   const router = useRouter();
+
+  // Redirect if user doesn't have permission
+  useFocusEffect(
+    useCallback(() => {
+      if (!canSell) {
+        router.replace('/(tabs)/products');
+      }
+    }, [canSell, router])
+  );
   const flatListRef = useRef<FlatList>(null);
 
   // Use the group from useProducts hook instead of local state
