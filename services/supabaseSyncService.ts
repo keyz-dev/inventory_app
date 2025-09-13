@@ -2,15 +2,15 @@ import { getSupabaseSyncConfig, validateSupabaseConfig } from '@/config/supabase
 import { query } from '@/lib/db';
 import { supabase } from '@/lib/supabase';
 import {
-    RemoteEntity,
-    SyncConfig,
-    SyncConflict,
-    SyncEntity,
-    SyncError,
-    SyncOperation,
-    SyncRecord,
-    SyncResult,
-    SyncState
+  RemoteEntity,
+  SyncConfig,
+  SyncConflict,
+  SyncEntity,
+  SyncError,
+  SyncOperation,
+  SyncRecord,
+  SyncResult,
+  SyncState
 } from '@/types/sync';
 
 class SupabaseSyncService {
@@ -150,23 +150,33 @@ class SupabaseSyncService {
 
   // Manual sync trigger
   async syncNow(): Promise<SyncResult> {
+    console.log('🔄 syncNow() called, current status:', this.syncState.status);
+    
     if (this.syncState.status === 'syncing') {
+      console.log('❌ Sync already in progress, throwing error');
       throw new Error('Sync already in progress');
     }
 
     // Check if we can sync (respects WiFi-only setting)
+    console.log('🔍 Checking if we can sync...');
     const canPerformSync = await this.canSync();
+    console.log('🔍 Can sync result:', canPerformSync);
+    
     if (!canPerformSync) {
       const errorMessage = this.config.syncOnWiFiOnly 
         ? 'Sync requires WiFi connection' 
         : 'No internet connection available';
+      console.log('❌ Cannot sync:', errorMessage);
       throw new Error(errorMessage);
     }
 
+    console.log('✅ Setting status to syncing...');
     this.updateState({ status: 'syncing' });
 
     try {
       const result = await this.performSync();
+      
+      // Update the state
       this.updateState({ 
         status: 'success', 
         lastSyncAt: result.timestamp,
@@ -309,6 +319,7 @@ class SupabaseSyncService {
       size_label: data.sizeLabel,
       variant_of_id: data.variantOfId,
       category_id: data.categoryId,
+      created_at: data.createdAt || new Date().toISOString(),
       updated_at: new Date().toISOString(),
       deleted_at: data.deletedAt || null,
       version: data.version || 1
@@ -338,6 +349,7 @@ class SupabaseSyncService {
       id: data.id,
       name: data.name,
       parent_id: data.parentId,
+      created_at: data.createdAt || new Date().toISOString(),
       updated_at: new Date().toISOString(),
       deleted_at: data.deletedAt || null,
       version: data.version || 1
@@ -369,6 +381,7 @@ class SupabaseSyncService {
       quantity: data.quantity,
       price_xaf: data.priceXaf,
       total_xaf: data.totalXaf,
+      created_at: data.createdAt || new Date().toISOString(),
       updated_at: new Date().toISOString(),
       deleted_at: data.deletedAt || null,
       version: data.version || 1
@@ -399,6 +412,7 @@ class SupabaseSyncService {
       product_id: data.productId,
       quantity_change: data.quantityChange,
       reason: data.reason,
+      created_at: data.createdAt || new Date().toISOString(),
       updated_at: new Date().toISOString(),
       deleted_at: data.deletedAt || null,
       version: data.version || 1
@@ -485,6 +499,9 @@ class SupabaseSyncService {
               sizeLabel: product.size_label,
               variantOfId: product.variant_of_id,
               categoryId: product.category_id,
+              createdAt: product.created_at,
+              updatedAt: product.updated_at,
+              deletedAt: product.deleted_at,
               version: product.version
             },
             updatedAt: product.updated_at,
@@ -516,6 +533,9 @@ class SupabaseSyncService {
               id: category.id,
               name: category.name,
               parentId: category.parent_id,
+              createdAt: category.created_at,
+              updatedAt: category.updated_at,
+              deletedAt: category.deleted_at,
               version: category.version
             },
             updatedAt: category.updated_at,
@@ -549,6 +569,9 @@ class SupabaseSyncService {
               quantity: sale.quantity,
               priceXaf: sale.price_xaf,
               totalXaf: sale.total_xaf,
+              createdAt: sale.created_at,
+              updatedAt: sale.updated_at,
+              deletedAt: sale.deleted_at,
               version: sale.version
             },
             updatedAt: sale.updated_at,
@@ -581,6 +604,9 @@ class SupabaseSyncService {
               productId: adjustment.product_id,
               quantityChange: adjustment.quantity_change,
               reason: adjustment.reason,
+              createdAt: adjustment.created_at,
+              updatedAt: adjustment.updated_at,
+              deletedAt: adjustment.deleted_at,
               version: adjustment.version
             },
             updatedAt: adjustment.updated_at,
@@ -757,53 +783,42 @@ class SupabaseSyncService {
     }
   }
 
-  // Database operations
+  // Database operations - Use local SQLite for sync queue
   private async saveSyncRecord(record: SyncRecord): Promise<void> {
-    const { error } = await supabase
-      .from('sync_queue')
-      .insert({
-        id: record.id,
-        entity: record.entity,
-        operation: record.operation,
-        data: record.data,
-        timestamp: record.timestamp,
-        synced: record.synced,
-        retry_count: record.retryCount,
-        last_error: record.lastError
-      });
-
-    if (error) throw error;
+    const { execute } = await import('@/lib/db');
+    execute(
+      `INSERT OR REPLACE INTO sync_queue (id, entity, operation, data, timestamp, synced, retryCount, lastError) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [record.id, record.entity, record.operation, JSON.stringify(record.data), 
+       record.timestamp, record.synced ? 1 : 0, record.retryCount, record.lastError || null]
+    );
   }
 
   private async getPendingOperations(): Promise<SyncRecord[]> {
-    const { data, error } = await supabase
-      .from('sync_queue')
-      .select('*')
-      .eq('synced', false)
-      .order('timestamp', { ascending: true })
-      .limit(this.config.batchSize);
+    const { query } = await import('@/lib/db');
+    const rows = query<any>(
+      `SELECT * FROM sync_queue WHERE synced = 0 ORDER BY timestamp ASC LIMIT ?`,
+      [this.config.batchSize]
+    );
 
-    if (error) throw error;
-
-    return (data || []).map(row => ({
+    return rows.map(row => ({
       id: row.id,
       entity: row.entity as SyncEntity,
       operation: row.operation as SyncOperation,
-      data: row.data,
+      data: JSON.parse(row.data),
       timestamp: row.timestamp,
-      synced: row.synced,
-      retryCount: row.retry_count,
-      lastError: row.last_error
+      synced: row.synced === 1,
+      retryCount: row.retryCount,
+      lastError: row.lastError
     }));
   }
 
   private async markOperationSynced(operationId: string): Promise<void> {
-    const { error } = await supabase
-      .from('sync_queue')
-      .update({ synced: true })
-      .eq('id', operationId);
-
-    if (error) throw error;
+    const { execute } = await import('@/lib/db');
+    execute(
+      `UPDATE sync_queue SET synced = 1 WHERE id = ?`,
+      [operationId]
+    );
   }
 
   // Utility methods
@@ -813,21 +828,27 @@ class SupabaseSyncService {
 
   private async loadSyncState(): Promise<void> {
     try {
-      const { data: lastSyncData } = await supabase
-        .from('meta')
-        .select('value')
-        .eq('key', 'lastSyncedAt')
-        .single();
+      const { query } = await import('@/lib/db');
+      
+      // Get last sync time from local meta table
+      const lastSyncData = query<any>(
+        `SELECT value FROM meta WHERE key = 'lastSyncedAt'`
+      )[0];
 
-      const { data: pendingCountData } = await supabase
-        .from('sync_queue')
-        .select('id', { count: 'exact' })
-        .eq('synced', false);
+      // Get pending operations count from local sync_queue
+      const pendingCountData = query<any>(
+        `SELECT COUNT(*) as count FROM sync_queue WHERE synced = 0`
+      )[0];
+
+      console.log('Loading sync state:', {
+        lastSyncAt: lastSyncData?.value,
+        pendingOperations: pendingCountData?.count || 0
+      });
 
       this.syncState = {
         ...this.syncState,
         lastSyncAt: lastSyncData?.value,
-        pendingOperations: pendingCountData?.length || 0
+        pendingOperations: pendingCountData?.count || 0
       };
     } catch (error) {
       console.error('Failed to load sync state:', error);
@@ -835,11 +856,13 @@ class SupabaseSyncService {
   }
 
   private async updateLastSyncTime(timestamp: string): Promise<void> {
-    const { error } = await supabase
-      .from('meta')
-      .upsert({ key: 'lastSyncedAt', value: timestamp });
-
-    if (error) throw error;
+    console.log('Updating last sync time:', timestamp);
+    const { execute } = await import('@/lib/db');
+    execute(
+      `INSERT OR REPLACE INTO meta (key, value) VALUES ('lastSyncedAt', ?)`,
+      [timestamp]
+    );
+    console.log('Last sync time updated successfully');
   }
 
   private async setupNetworkListener(): Promise<void> {
@@ -868,14 +891,17 @@ class SupabaseSyncService {
 
   private async checkNetworkState(): Promise<boolean> {
     try {
+      console.log('🔍 Checking network state by pinging Supabase...');
       // Simple network check by pinging Supabase
       const { error } = await supabase
         .from('meta')
         .select('key')
         .limit(1);
       
+      console.log('🔍 Supabase ping result:', error ? 'Error: ' + error.message : 'Success');
       return !error;
     } catch (error) {
+      console.log('❌ Network check failed with exception:', error);
       return false;
     }
   }
@@ -888,19 +914,25 @@ class SupabaseSyncService {
   }
 
   private async canSync(): Promise<boolean> {
+    console.log('🔍 canSync() called');
     const isOnline = await this.checkNetworkState();
+    console.log('🔍 Network state check result:', isOnline);
     
     if (!isOnline) {
+      console.log('❌ Not online, cannot sync');
       return false;
     }
 
     // If WiFi-only is enabled, check if we're on WiFi
     if (this.config.syncOnWiFiOnly) {
+      console.log('🔍 WiFi-only enabled, checking WiFi connection');
       const isWiFi = await this.isWiFiConnection();
+      console.log('🔍 WiFi connection result:', isWiFi);
       return isWiFi;
     }
 
     // If WiFi-only is disabled, allow sync on any connection (WiFi + mobile data)
+    console.log('✅ WiFi-only disabled, allowing sync on any connection');
     return true;
   }
 
@@ -966,7 +998,10 @@ class SupabaseSyncService {
   }
 
   private updateState(updates: Partial<SyncState>): void {
+    console.log('🔄 updateState() called with:', updates);
+    console.log('🔄 Previous state:', this.syncState);
     this.syncState = { ...this.syncState, ...updates };
+    console.log('🔄 New state:', this.syncState);
     this.syncListeners.forEach(listener => listener(this.syncState));
   }
 }

@@ -6,6 +6,7 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { useCanSell, useUser } from '@/contexts/UserContext';
 import { recordSale } from '@/data/salesRepo';
 import { useProducts } from '@/hooks/useProducts';
+import { useSync } from '@/hooks/useSync';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -20,11 +21,13 @@ export default function SellScreen() {
     loadingMore, 
     group, 
     setGroup, 
-    loading 
+    loading,
+    findAndLoadProduct
   } = useProducts(true); // Enable pagination
   const { showSettings } = useSettings();
-  const { currentUser } = useUser();
+  useUser(); // Get user context for permissions
   const canSell = useCanSell();
+  const { queueOperation } = useSync();
   const [highlightedProductId, setHighlightedProductId] = useState<string | null>(null);
   const router = useRouter();
 
@@ -41,9 +44,79 @@ export default function SellScreen() {
   // Use the group from useProducts hook instead of local state
   const selectedCategory = group;
 
-  const handleSell = (productId: string) => {
+  // Helper function to handle product result and scrolling
+  const handleProductResult = (result: any, variant: any, productName: string) => {
+    if (result) {
+      const { product, index } = result;
+      
+      // Find the matching variant in the product list
+      const matchingVariant = product.variants.find((v: any) => 
+        v.sizeLabel === variant.sizeLabel && v.priceXaf === variant.priceXaf
+      );
+      
+      if (matchingVariant) {
+        // Highlight the product immediately
+        setHighlightedProductId(matchingVariant.id);
+      } else {
+        // Fallback to search variant ID
+        setHighlightedProductId(variant.id);
+      }
+      
+      // Scroll to center the product in the viewport
+      setTimeout(() => {
+        // Try scrollToIndex first (more accurate)
+        try {
+          flatListRef.current?.scrollToIndex({
+            index: index,
+            animated: true,
+            viewPosition: 0.5, // Center the item in the viewport
+          });
+        } catch {
+          // Fallback to scrollToOffset if scrollToIndex fails
+          const estimatedItemHeight = 80;
+          const itemOffset = index * estimatedItemHeight;
+          const viewportHeight = 600;
+          const centeredOffset = Math.max(0, itemOffset - (viewportHeight / 2) + (estimatedItemHeight / 2));
+          
+          flatListRef.current?.scrollToOffset({
+            offset: centeredOffset,
+            animated: true
+          });
+        }
+      }, 100);
+      
+      // Remove highlight after 3 seconds
+      setTimeout(() => {
+        setHighlightedProductId(null);
+      }, 3000);
+    } else {
+      // Product not found, show a message
+      Alert.alert(
+        'Product Not Found',
+        `${productName || 'The selected product'} could not be found. It may have been deleted or is not available.`,
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
+  const handleSell = async (productId: string) => {
     try {
+      // Record the sale locally
       recordSale(productId, 1);
+      
+      // Queue sync operation for the sale
+      try {
+        await queueOperation('sale', 'create', {
+          productId,
+          quantity: 1,
+          timestamp: new Date().toISOString()
+        });
+      } catch (syncError) {
+        // Don't show error to user - the sale was recorded successfully
+        // Sync will retry automatically
+        console.warn('Failed to queue sale for sync:', syncError);
+      }
+      
       reload(); // Refresh the product list
       // Could add haptic feedback here
     } catch {
@@ -63,7 +136,7 @@ export default function SellScreen() {
           const selectedData = await AsyncStorage.getItem('selectedProductFromSearch');
           
           if (selectedData) {
-            const { product, variant, context } = JSON.parse(selectedData);
+            const { productId, variant, context, productName, categoryGroup } = JSON.parse(selectedData);
             
             // Only handle if this is the sell context
             if (context === 'sell') {
@@ -72,54 +145,28 @@ export default function SellScreen() {
               // Clear the stored data immediately to prevent multiple processing
               await AsyncStorage.removeItem('selectedProductFromSearch');
               
-              // Find the product in the current list
-              const productIndex = products.findIndex(p => p.id === product.id);
-              
-              if (productIndex !== -1) {
+              // Smart category switching: switch to the product's category if needed
+              if (categoryGroup && categoryGroup !== 'all' && categoryGroup !== group) {
+                setGroup(categoryGroup);
                 
-                // Find the matching variant in the product list
-                const matchingVariant = products[productIndex].variants.find(v => 
-                  v.sizeLabel === variant.sizeLabel && v.priceXaf === variant.priceXaf
+                // Show user feedback about the category switch
+                Alert.alert(
+                  'Category Switched',
+                  `Switched to ${categoryGroup} category to show "${productName}".`,
+                  [{ text: 'OK' }]
                 );
                 
-                if (matchingVariant) {
-                  // Highlight the product immediately
-                  setHighlightedProductId(matchingVariant.id);
-                } else {
-                  // Fallback to search variant ID
-                  setHighlightedProductId(variant.id);
-                }
-                
-                // Scroll to center the product in the viewport
-                setTimeout(() => {
-                  
-                  // Try scrollToIndex first (more accurate)
-                  try {
-                    flatListRef.current?.scrollToIndex({
-                      index: productIndex,
-                      animated: true,
-                      viewPosition: 0.5, // Center the item in the viewport
-                    });
-                  } catch {
-                    // Fallback to scrollToOffset if scrollToIndex fails
-                    const estimatedItemHeight = 80;
-                    const itemOffset = productIndex * estimatedItemHeight;
-                    const viewportHeight = 600;
-                    const centeredOffset = Math.max(0, itemOffset - (viewportHeight / 2) + (estimatedItemHeight / 2));
-                    
-                    flatListRef.current?.scrollToOffset({
-                      offset: centeredOffset,
-                      animated: true
-                    });
-                  }
-                }, 100);
-                
-                // Remove highlight after 10 seconds
-                setTimeout(() => {
-                  setHighlightedProductId(null);
-                }, 10000);
-              } else {
+                // Wait a moment for the category to load, then continue
+                setTimeout(async () => {
+                  const result = await findAndLoadProduct(productId);
+                  handleProductResult(result, variant, productName);
+                }, 500);
+                return;
               }
+              
+              // Try to find and load the product
+              const result = await findAndLoadProduct(productId);
+              handleProductResult(result, variant, productName);
             } else {
             }
           } else {
@@ -131,7 +178,7 @@ export default function SellScreen() {
       };
 
       checkForSelectedProduct();
-    }, [products])
+    }, [findAndLoadProduct, group, setGroup])
   );
 
   const renderProduct = ({ item }: any) => {
@@ -172,7 +219,7 @@ export default function SellScreen() {
 
   return (
     <Screen 
-      title={`Sell - ${currentUser?.name || 'User'}`}
+      title="Sell"
       rightHeaderAction={{
         icon: 'settings',
         onPress: showSettings

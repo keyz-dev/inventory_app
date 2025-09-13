@@ -10,14 +10,14 @@ import { Colors } from '@/constants/DesignSystem';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useCanViewAnalytics, useUser } from '@/contexts/UserContext';
 import {
-    getCategoryAnalytics,
-    getHourlySales,
-    getRevenueByPaymentMethod,
-    getSalesAnalytics,
-    getSalesTrend,
-    getStockAnalytics,
-    getTopProducts,
-    TimeRange,
+  getCategoryAnalytics,
+  getHourlySales,
+  getRevenueByPaymentMethod,
+  getSalesAnalytics,
+  getSalesTrend,
+  getStockAnalytics,
+  getTopProducts,
+  TimeRange,
 } from '@/data/analyticsRepo';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -141,7 +141,7 @@ export default function AnalyticsScreen() {
 
   return (
     <Screen 
-      title={`Analytics - ${currentUser?.name || 'User'}`}
+      title="Analytics"
       rightHeaderAction={{
         icon: 'settings',
         onPress: showSettings
@@ -244,9 +244,10 @@ export default function AnalyticsScreen() {
         {salesTrend.length > 0 && (
           <LineChart
             title="Sales Trend"
-            data={salesTrend.map(item => ({
+            data={salesTrend.map((item, index) => ({
               date: item.date,
               value: item.revenue,
+              key: item.date || `trend-${index}`,
             }))}
             color={Colors.primary[500]}
           />
@@ -256,9 +257,10 @@ export default function AnalyticsScreen() {
         {topProducts.length > 0 && (
           <BarChart
             title="Top Selling Products"
-            data={topProducts.map(item => ({
+            data={topProducts.map((item, index) => ({
               label: item.sizeLabel ? `${item.productName} (${item.sizeLabel})` : item.productName,
               value: item.totalSold,
+              key: item.productId || `product-${index}`,
             }))}
             color={Colors.success[500]}
           />
@@ -272,6 +274,7 @@ export default function AnalyticsScreen() {
               name: item.paymentMethod,
               value: item.revenue,
               color: [Colors.primary[500], Colors.success[500], Colors.warning[500], Colors.error[500]][index % 4],
+              key: item.paymentMethod || `payment-${index}`,
             }))}
           />
         )}
@@ -280,9 +283,10 @@ export default function AnalyticsScreen() {
         {hourlySales.length > 0 && (
           <BarChart
             title="Sales by Hour"
-            data={hourlySales.map(item => ({
+            data={hourlySales.map((item, index) => ({
               label: `${item.hour}:00`,
               value: item.sales,
+              key: `hour-${item.hour}` || `hour-${index}`,
             }))}
             color={Colors.warning[500]}
           />
@@ -299,7 +303,7 @@ export default function AnalyticsScreen() {
                 <Text style={styles.tableHeaderText}>Sales</Text>
               </View>
               {categoryAnalytics.map((category, index) => (
-                <View key={category.categoryId} style={styles.tableRow}>
+                <View key={category.categoryId || `category-${index}`} style={styles.tableRow}>
                   <Text style={styles.tableCell}>{category.categoryName}</Text>
                   <Text style={styles.tableCell}>{formatXAF(category.revenue)}</Text>
                   <Text style={styles.tableCell}>{category.totalSold}</Text>

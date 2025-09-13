@@ -28,10 +28,11 @@ export default function ProductsScreen() {
     reload, 
     loadMore,
     hasMore,
-    pagination
+    pagination,
+    findAndLoadProduct
   } = useProducts(true); // Enable pagination
   const { showSettings } = useSettings();
-  const { currentUser } = useUser();
+  useUser(); // Get user context for permissions
   const canManageProducts = useCanManageProducts();
   
   const { queueOperation } = useSync(); // Add sync functionality
@@ -41,6 +42,51 @@ export default function ProductsScreen() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [highlightedProductId, setHighlightedProductId] = useState<string | null>(null);
   const flatListRef = useRef<any>(null);
+
+  // Helper function to handle product result and scrolling
+  const handleProductResult = (result: any, productName: string) => {
+    if (result) {
+      const { product, index } = result;
+      
+      // Highlight the product immediately
+      setHighlightedProductId(product.id);
+      
+      // Scroll to center the product in the viewport
+      setTimeout(() => {
+        // Try scrollToIndex first (more accurate)
+        try {
+          flatListRef.current?.scrollToIndex({
+            index: index,
+            animated: true,
+            viewPosition: 0.5, // Center the item in the viewport
+          });
+        } catch {
+          // Fallback to scrollToOffset if scrollToIndex fails
+          const estimatedItemHeight = 120;
+          const itemOffset = index * estimatedItemHeight;
+          const viewportHeight = 600;
+          const centeredOffset = Math.max(0, itemOffset - (viewportHeight / 2) + (estimatedItemHeight / 2));
+          
+          flatListRef.current?.scrollToOffset({
+            offset: centeredOffset,
+            animated: true
+          });
+        }
+      }, 100);
+      
+      // Remove highlight after 3 seconds
+      setTimeout(() => {
+        setHighlightedProductId(null);
+      }, 3000);
+    } else {
+      // Product not found, show a message
+      Alert.alert(
+        'Product Not Found',
+        `${productName || 'The selected product'} could not be found. It may have been deleted or is not available.`,
+        [{ text: 'OK' }]
+      );
+    }
+  };
 
   const handleCreateProduct = async (data: any) => {
     try {
@@ -61,7 +107,7 @@ export default function ProductsScreen() {
             categoryId: product.categoryId
           });
         }
-      } catch (syncError) {
+      } catch {
         // Don't show error to user - the product was created successfully
         // Sync will retry automatically
       }
@@ -93,7 +139,7 @@ export default function ProductsScreen() {
             categoryId: updatedProduct.categoryId
           });
         }
-      } catch (syncError) {
+      } catch {
         // Don't show error to user - sync will retry automatically
       }
       
@@ -131,7 +177,7 @@ export default function ProductsScreen() {
                     categoryId: product.categoryId
                   });
                 }
-              } catch (syncError) {
+              } catch {
                 // Don't show error to user - sync will retry automatically
               }
               
@@ -179,7 +225,7 @@ export default function ProductsScreen() {
           const selectedData = await AsyncStorage.getItem('selectedProductFromSearch');
           
           if (selectedData) {
-            const { product, variant, context } = JSON.parse(selectedData);
+            const { productId, context, productName, categoryGroup } = JSON.parse(selectedData);
             
             // Only handle if this is the products context
             if (context === 'products') {
@@ -188,61 +234,45 @@ export default function ProductsScreen() {
               // Clear the stored data immediately to prevent multiple processing
               await AsyncStorage.removeItem('selectedProductFromSearch');
               
-              // Find the product in the current list
-              const productIndex = products.findIndex(p => p.id === product.id);
-              
-              if (productIndex !== -1) {
+              // Smart category switching: switch to the product's category if needed
+              if (categoryGroup && categoryGroup !== 'all' && categoryGroup !== group) {
+                setGroup(categoryGroup);
                 
-                // Highlight the product immediately
-                setHighlightedProductId(product.id);
+                // Show user feedback about the category switch
+                Alert.alert(
+                  'Category Switched',
+                  `Switched to ${categoryGroup} category to show "${productName}".`,
+                  [{ text: 'OK' }]
+                );
                 
-                // Scroll to center the product in the viewport
-                setTimeout(() => {
-                  
-                  // Try scrollToIndex first (more accurate)
-                  try {
-                    flatListRef.current?.scrollToIndex({
-                      index: productIndex,
-                      animated: true,
-                      viewPosition: 0.5, // Center the item in the viewport
-                    });
-                  } catch (error) {
-                    // Fallback to scrollToOffset if scrollToIndex fails
-                    const estimatedItemHeight = 120;
-                    const itemOffset = productIndex * estimatedItemHeight;
-                    const viewportHeight = 600;
-                    const centeredOffset = Math.max(0, itemOffset - (viewportHeight / 2) + (estimatedItemHeight / 2));
-                    
-                    flatListRef.current?.scrollToOffset({
-                      offset: centeredOffset,
-                      animated: true
-                    });
-                  }
-                }, 100);
-                
-                // Remove highlight after 10 seconds
-                setTimeout(() => {
-                  setHighlightedProductId(null);
-                }, 10000);
-              } else {
+                // Wait a moment for the category to load, then continue
+                setTimeout(async () => {
+                  const result = await findAndLoadProduct(productId);
+                  handleProductResult(result, productName);
+                }, 500);
+                return;
               }
+              
+              // Try to find and load the product
+              const result = await findAndLoadProduct(productId);
+              handleProductResult(result, productName);
             } else {
             }
           } else {
           }
-        } catch (error) {
+        } catch {
         } finally {
           isProcessing = false;
         }
       };
 
       checkForSelectedProduct();
-    }, [products])
+    }, [findAndLoadProduct, group, setGroup])
   );
 
   return (
     <Screen 
-      title={`Products - ${currentUser?.name || 'User'}`}
+      title="Products"
       rightHeaderAction={{
         icon: 'settings',
         onPress: showSettings
@@ -309,12 +339,8 @@ const styles = StyleSheet.create({
   },
   actionBar: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
     paddingVertical: 12,
-    gap: 12,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
+    gap: 12
   },
   actionButton: {
     flex: 1,

@@ -10,8 +10,11 @@ export type PinMode = 'loading' | 'setup' | 'confirm' | 'enter' | 'forgot' | 're
 
 export const usePinLogic = () => {
   const router = useRouter();
-  const { users } = useUser();
+  const userContext = useUser();
   const [mode, setMode] = useState<PinMode>('loading');
+  
+  // Safely get users with fallback
+  const users = userContext?.users || [];
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [error, setError] = useState<string>('');

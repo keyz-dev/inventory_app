@@ -33,11 +33,23 @@ export default function SyncScreen() {
     try {
       const result = await syncNow();
       
-      Alert.alert(
-        'Sync Complete',
-        `Synced ${result.syncedRecords} records. ${result.conflicts.length} conflicts found.`,
-        [{ text: 'OK' }]
-      );
+      // Create detailed sync report
+      let message = `Sync completed successfully!\n\n`;
+      message += `📤 Uploaded: ${result.syncedRecords} records\n`;
+      message += `⚠️ Conflicts: ${result.conflicts.length}\n`;
+      message += `❌ Errors: ${result.errors.length}\n`;
+      
+      if (result.errors.length > 0) {
+        message += `\nErrors:\n`;
+        result.errors.slice(0, 3).forEach(error => {
+          message += `• ${error.entity}: ${error.error}\n`;
+        });
+        if (result.errors.length > 3) {
+          message += `• ... and ${result.errors.length - 3} more\n`;
+        }
+      }
+      
+      Alert.alert('Sync Complete', message, [{ text: 'OK' }]);
     } catch (error) {
       Alert.alert(
         'Sync Failed',
@@ -83,7 +95,7 @@ export default function SyncScreen() {
 
   return (
     <Screen 
-      title={`Sync - ${currentUser?.name || 'User'}`}
+      title="Sync"
       rightHeaderAction={{
         icon: 'settings',
         onPress: showSettings
@@ -121,6 +133,23 @@ export default function SyncScreen() {
             </View>
           </View>
         </View>
+
+        {/* Sync Queue Details */}
+        {syncState.pendingOperations > 0 && (
+          <View style={styles.section}>
+            <ThemedText type="subtitle" style={styles.sectionTitle}>
+              Pending Operations Queue
+            </ThemedText>
+            <View style={styles.queueCard}>
+              <ThemedText style={styles.queueText}>
+                {syncState.pendingOperations} operations waiting to sync
+              </ThemedText>
+              <ThemedText style={styles.queueSubtext}>
+                Operations will be processed automatically or when you tap sync
+              </ThemedText>
+            </View>
+          </View>
+        )}
 
 
         <View style={styles.section}>
@@ -227,6 +256,24 @@ const styles = StyleSheet.create({
   featureText: {
     fontSize: 14,
     color: '#1f2937',
+    fontFamily: 'Poppins_400Regular',
+  },
+  queueCard: {
+    backgroundColor: '#fef3c7',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#fbbf24',
+  },
+  queueText: {
+    fontSize: 14,
+    color: '#92400e',
+    fontFamily: 'Poppins_500Medium',
+    marginBottom: 4,
+  },
+  queueSubtext: {
+    fontSize: 12,
+    color: '#a16207',
     fontFamily: 'Poppins_400Regular',
   },
   noAccessContainer: {

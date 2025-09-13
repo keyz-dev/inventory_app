@@ -208,12 +208,31 @@ function getCorrectedWords(words: string[]): string[] {
   return [...new Set(corrected)]; // Remove duplicates
 }
 
+// Helper function to determine category group from categoryId
+function getCategoryGroup(categoryId: string | null): 'pharma' | 'cosmetics' | 'all' {
+  if (!categoryId) return 'all';
+  
+  // Check if it's a pharma category (including subcategories)
+  if (categoryId === 'cat_pharma' || categoryId.startsWith('cat_pharma_')) {
+    return 'pharma';
+  }
+  
+  // Check if it's a cosmetics category (including subcategories)
+  if (categoryId === 'cat_cosmetics' || categoryId.startsWith('cat_cosmetics_')) {
+    return 'cosmetics';
+  }
+  
+  return 'all';
+}
+
 export type SearchResult = {
   key: string;
   name: string;
   variant?: { sizeLabel: string | null; priceXaf: number; quantity: number };
   score: number;
   matchType: 'exact' | 'contains' | 'similar' | 'word' | 'fallback';
+  categoryId?: string;
+  categoryGroup?: 'pharma' | 'cosmetics' | 'all';
 };
 
 export function fuzzySearchProducts(q: string, limit: number = 20): SearchResult[] {
@@ -239,7 +258,9 @@ export function fuzzySearchProducts(q: string, limit: number = 20): SearchResult
         name: p.name,
         variant: { sizeLabel: v.sizeLabel, priceXaf: v.priceXaf, quantity: v.quantity },
         score: 0,
-        matchType: 'fallback'
+        matchType: 'fallback',
+        categoryId: p.categoryId,
+        categoryGroup: getCategoryGroup(p.categoryId)
       };
 
       // 1. Exact match (highest priority)

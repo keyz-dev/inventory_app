@@ -33,7 +33,7 @@ export default function RootLayout() {
         // Hide splash screen after a minimum delay for better UX
         setTimeout(() => {
           setShowSplash(false);
-        }, 2000);
+        }, 1500);
       } catch (error) {
         console.error('Database migration failed:', error);
         console.error('Error details:', JSON.stringify(error, null, 2));
@@ -48,10 +48,10 @@ export default function RootLayout() {
         // Still allow app to continue even if database fails
         setDatabaseReady(true);
         
-        // Hide splash screen even on error
+        // Hide splash screen even on error - shorter delay for production
         setTimeout(() => {
           setShowSplash(false);
-        }, 2000);
+        }, 1000);
       }
     };
     
@@ -64,8 +64,17 @@ export default function RootLayout() {
   }, []);
 
   if (!loaded) {
-    // Async font loading only occurs in development.
-    return null;
+    // Show a simple loading screen while fonts load
+    return (
+      <View style={{ 
+        flex: 1, 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        backgroundColor: '#F8FAFC' 
+      }}>
+        <Text style={{ fontSize: 16, color: '#000' }}>Loading fonts...</Text>
+      </View>
+    );
   }
 
   // Show splash screen during initialization
@@ -110,7 +119,12 @@ export default function RootLayout() {
       <UserProvider>
         <SettingsProvider>
           <ThemeProvider value={DefaultTheme}>
-            <Stack initialRouteName="pin">
+            <Stack 
+              initialRouteName="pin"
+              screenOptions={{
+                headerShown: false,
+              }}
+            >
               <Stack.Screen name="pin" options={{ headerShown: false }} />
               <Stack.Screen name="user-selection" options={{ headerShown: false }} />
               <Stack.Screen name="user-management" options={{ headerShown: false }} />

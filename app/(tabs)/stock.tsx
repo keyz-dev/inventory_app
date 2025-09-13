@@ -6,6 +6,7 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { useCanAdjustStock, useUser } from '@/contexts/UserContext';
 import { getLowStockProducts, getStockSummary, recordStockAdjustment } from '@/data/stockRepo';
 import { useProducts } from '@/hooks/useProducts';
+import { useSync } from '@/hooks/useSync';
 import { Product } from '@/types/domain';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -16,8 +17,9 @@ import { ActivityIndicator, Alert, FlatList, RefreshControl, StyleSheet, Touchab
 export default function StockScreen() {
   const { products, loading, loadingMore, loadMore, reload } = useProducts(true); // Enable pagination
   const { showSettings } = useSettings();
-  const { currentUser } = useUser();
+  useUser(); // Get user context for permissions
   const canAdjustStock = useCanAdjustStock();
+  const { queueOperation } = useSync();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showAdjustmentForm, setShowAdjustmentForm] = useState(false);
   const [stockSummary, setStockSummary] = useState({
@@ -53,7 +55,6 @@ export default function StockScreen() {
   const loadStockData = () => {
     try {
       const summary = getStockSummary(3);
-      console.log('Stock summary loaded:', summary);
       setStockSummary(summary);
       
       const lowStock = getLowStockProducts(3);
@@ -73,11 +74,26 @@ export default function StockScreen() {
     }
   };
 
-  const handleAdjustStock = (productId: string, delta: number, reason: string) => {
+  const handleAdjustStock = async (productId: string, delta: number, reason: string) => {
     try {
-      console.log('Adjusting stock for product:', productId, 'delta:', delta, 'reason:', reason);
+     
+      // Record the stock adjustment locally
       recordStockAdjustment(productId, delta, reason);
-      console.log('Stock adjustment recorded, reloading data...');
+      
+      // Queue sync operation for the stock adjustment
+      try {
+        await queueOperation('stock_adjustment', 'create', {
+          productId,
+          quantityChange: delta,
+          reason,
+          timestamp: new Date().toISOString()
+        });
+      } catch (syncError) {
+        // Don't show error to user - the adjustment was recorded successfully
+        // Sync will retry automatically
+        console.warn('Failed to queue stock adjustment for sync:', syncError);
+      }
+      
       reload();
       loadStockData();
       Alert.alert('Success', 'Stock adjusted successfully');
@@ -102,15 +118,12 @@ export default function StockScreen() {
         
         try {
           const selectedData = await AsyncStorage.getItem('selectedProductFromSearch');
-          console.log('Stock page: Retrieved data:', selectedData);
           
           if (selectedData) {
             const { product, variant, context } = JSON.parse(selectedData);
-            console.log('Stock page: Parsed data:', { product: product.name, variant, context });
             
             // Only handle if this is the stock context
             if (context === 'stock') {
-              console.log('Stock page: Context matches, processing...');
               isProcessing = true;
               
               // Clear the stored data immediately to prevent multiple processing
@@ -118,19 +131,14 @@ export default function StockScreen() {
               
               // Find the product in the current list
               const productIndex = products.findIndex(p => p.id === product.id);
-              console.log('Stock page: Product index:', productIndex);
-              console.log('Stock page: Total products:', products.length);
               
               if (productIndex !== -1) {
-                console.log('Stock page: Product found, highlighting and scrolling...');
                 
                 // Highlight the product immediately
                 setHighlightedProductId(variant.id);
-                console.log('Stock page: Highlighted product ID set to:', variant.id);
                 
                 // Scroll to center the product in the viewport
                 setTimeout(() => {
-                  console.log('Stock page: Centering product at index:', productIndex);
                   
                   // Try scrollToIndex first (more accurate)
                   try {
@@ -141,7 +149,6 @@ export default function StockScreen() {
                     });
                   } catch {
                     // Fallback to scrollToOffset if scrollToIndex fails
-                    console.log('Stock page: scrollToIndex failed, using scrollToOffset');
                     const estimatedItemHeight = 100;
                     const itemOffset = productIndex * estimatedItemHeight;
                     const viewportHeight = 600;
@@ -157,17 +164,12 @@ export default function StockScreen() {
                 // Remove highlight after 10 seconds
                 setTimeout(() => {
                   setHighlightedProductId(null);
-                  console.log('Stock page: Highlight removed');
                 }, 10000);
               } else {
-                console.log('Stock page: Product not found in products list');
-                console.log('Stock page: Available product IDs:', products.map(p => p.id));
               }
             } else {
-              console.log('Stock page: Context does not match, ignoring');
             }
           } else {
-            console.log('Stock page: No selected data found');
           }
         } catch (error) {
           console.error('Stock page: Error handling selected product:', error);
@@ -251,7 +253,7 @@ export default function StockScreen() {
 
   return (
     <Screen 
-      title={`Stock - ${currentUser?.name || 'User'}`}
+      title="Stock"
       rightHeaderAction={{
         icon: 'settings',
         onPress: showSettings
@@ -268,6 +270,29 @@ export default function StockScreen() {
             <ThemedText style={styles.searchPlaceholder}>Search products...</ThemedText>
           </TouchableOpacity>
         </View>
+        {/* Low Stock Alert - Prominent but compact */}
+        {lowStockProducts.length > 0 && (
+          <View style={styles.alertCard}>
+            <View style={styles.alertHeader}>
+              <Ionicons name="warning" size={20} color="#f59e0b" />
+              <ThemedText style={styles.alertTitle}>Low Stock Alert ({lowStockProducts.length})</ThemedText>
+            </View>
+            <FlatList
+              data={lowStockProducts.slice(0, 3)} // Show only first 3 items
+              keyExtractor={(item) => item.id}
+              renderItem={renderLowStockItem}
+              showsVerticalScrollIndicator={false}
+              ListFooterComponent={() => 
+                lowStockProducts.length > 3 ? (
+                  <ThemedText style={styles.alertMoreText}>
+                    +{lowStockProducts.length - 3} more items need attention
+                  </ThemedText>
+                ) : null
+              }
+            />
+          </View>
+        )}
+
         {/* Stock Summary */}
         <View style={styles.summaryCard}>
           <ThemedText type="subtitle" style={styles.summaryTitle}>Stock Summary</ThemedText>
@@ -295,25 +320,9 @@ export default function StockScreen() {
           </View>
         </View>
 
-        {/* Low Stock Alert */}
-        {lowStockProducts.length > 0 && (
-          <View style={styles.alertCard}>
-            <View style={styles.alertHeader}>
-              <Ionicons name="warning" size={20} color="#f59e0b" />
-              <ThemedText style={styles.alertTitle}>Low Stock Alert</ThemedText>
-            </View>
-            <FlatList
-              data={lowStockProducts}
-              keyExtractor={(item) => item.id}
-              renderItem={renderLowStockItem}
-              showsVerticalScrollIndicator={false}
-            />
-          </View>
-        )}
-
-        {/* All Products */}
+        {/* All Products - Main functionality */}
         <View style={styles.productsSection}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>All Products</ThemedText>
+          <ThemedText type="subtitle" style={styles.sectionTitle}>Manage Stock</ThemedText>
           {loading && products.length === 0 ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color="#3b82f6" />
@@ -479,6 +488,16 @@ const styles = StyleSheet.create({
   },
   lowStockCountOut: {
     color: 'white',
+  },
+  alertMoreText: {
+    fontSize: 12,
+    color: '#a16207',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#fde68a',
   },
   productsSection: {
     flex: 1,

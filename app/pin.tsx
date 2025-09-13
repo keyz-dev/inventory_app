@@ -10,29 +10,30 @@ import React from 'react';
 import { Animated, SafeAreaView, StyleSheet, View } from 'react-native';
 
 export default function PinScreen() {
-  const {
-    mode,
-    pin,
-    confirmPin,
-    error,
-    shakeAnimation,
-    isLocked,
-    handleKeyPress,
-    handleDelete,
-    handleClear,
-    handleRetry,
-    handleForgotPin,
-    getRemainingTime,
-    setMode,
-  } = usePinLogic();
+  try {
+    const {
+      mode,
+      pin,
+      confirmPin,
+      error,
+      shakeAnimation,
+      isLocked,
+      handleKeyPress,
+      handleDelete,
+      handleClear,
+      handleRetry,
+      handleForgotPin,
+      getRemainingTime,
+      setMode,
+    } = usePinLogic();
 
-  if (mode === 'loading') {
-    return (
-      <ThemedView style={styles.container}>
-        <ThemedText>Loading…</ThemedText>
-      </ThemedView>
-    );
-  }
+    if (mode === 'loading') {
+      return (
+        <ThemedView style={styles.container}>
+          <ThemedText>Loading…</ThemedText>
+        </ThemedView>
+      );
+    }
 
   return (
     <View style={styles.container}>
@@ -83,6 +84,14 @@ export default function PinScreen() {
       </SafeAreaView>
     </View>
   );
+  } catch (error) {
+    console.error('PIN Screen Error:', error);
+    return (
+      <ThemedView style={styles.container}>
+        <ThemedText>Error loading PIN screen. Please restart the app.</ThemedText>
+      </ThemedView>
+    );
+  }
 }
 
 const styles = StyleSheet.create({

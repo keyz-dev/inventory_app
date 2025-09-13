@@ -1,12 +1,12 @@
 import { Screen } from '@/components/Screen';
 import { ThemedText } from '@/components/ThemedText';
 import { formatXAF } from '@/constants/Currency';
-import { fuzzySearchProducts, getProductById, SearchResult } from '@/data/productsRepo';
+import { fuzzySearchProducts, SearchResult } from '@/data/productsRepo';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, FlatList, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
 const HISTORY_KEY = 'search_history_v1';
 
@@ -57,20 +57,16 @@ export default function SearchScreen() {
   const handleProductSelect = async (item: any) => {
     await saveHistory(item.name);
     
-    // Get the full product details
+    // Get the product ID
     const [productId] = item.key.split(':');
-    const product = getProductById(productId);
     
-    if (!product) {
-      Alert.alert('Error', 'Product not found');
-      return;
-    }
-
-    // Store the selected product data first
+    // Store the selected product data - just the ID and context
     const searchData = {
-      product,
+      productId,
       variant: item.variant,
-      context
+      context,
+      productName: item.name, // Store name for display purposes
+      categoryGroup: item.categoryGroup // Store category for smart switching
     };
     
     try {
@@ -128,7 +124,7 @@ export default function SearchScreen() {
   );
 
   return (
-    <Screen>
+    <Screen title="Search Products">
       <View style={styles.inputWrap}>
         <Ionicons name="search" size={20} color="#9ca3af" />
         <TextInput

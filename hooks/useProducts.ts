@@ -100,6 +100,41 @@ export function useProducts(usePagination: boolean = false) {
     loadProducts(true);
   }, [group, search]);
 
+  // Function to find and load a specific product
+  const findAndLoadProduct = useCallback(async (productId: string) => {
+    // First, check if the product is already in the current list
+    const existingProduct = products.find(p => p.id === productId);
+    if (existingProduct) {
+      return { product: existingProduct, index: products.indexOf(existingProduct) };
+    }
+
+    // If not found, we need to load it
+    // For now, we'll load all products to find it (not ideal for performance)
+    // In a real-world scenario, you'd want a specific API endpoint
+    try {
+      const allProducts = listProductsLegacy('all', '');
+      const foundProduct = allProducts.find(p => p.id === productId);
+      
+      if (foundProduct) {
+        // Add the product to the current list if it's not there
+        setProducts(prev => {
+          const exists = prev.find(p => p.id === productId);
+          if (!exists) {
+            return [...prev, foundProduct];
+          }
+          return prev;
+        });
+        
+        return { product: foundProduct, index: products.length };
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error finding product:', error);
+      return null;
+    }
+  }, [products]);
+
   return { 
     products, 
     loading, 
@@ -111,7 +146,8 @@ export function useProducts(usePagination: boolean = false) {
     search, 
     setSearch: changeSearch,
     pagination,
-    hasMore: pagination.hasMore
+    hasMore: pagination.hasMore,
+    findAndLoadProduct
   };
 }
 
