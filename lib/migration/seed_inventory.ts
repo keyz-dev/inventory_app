@@ -1,13 +1,22 @@
 import { getDb } from "../db";
 import inventory from "../seeds/initial_inventory.json";
 
-// Simple UUID v4 generator
-function generateUUID(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
+// Deterministic UUID generator based on content
+function generateDeterministicUUID(content: string): string {
+  // Create a simple hash from the content
+  let hash = 0;
+  for (let i = 0; i < content.length; i++) {
+    const char = content.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  
+  // Convert to positive number and create UUID-like string
+  const positiveHash = Math.abs(hash);
+  const hex = positiveHash.toString(16).padStart(8, '0');
+  
+  // Format as UUID v4
+  return `${hex.substring(0, 8)}-${hex.substring(0, 4)}-4${hex.substring(1, 4)}-${hex.substring(4, 7)}-${hex.substring(0, 12)}`;
 }
 
 export async function runSeedMigration() {
@@ -58,18 +67,19 @@ export async function runSeedMigration() {
     );
 
     for (const sub of category.subcategories) {
-      // Generate UUID for subcategory
-      const subId = generateUUID();
+      // Use deterministic ID based on category name for consistent sync
+      const subId = `cat_${sub.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')}`;
       
-      // Insert subcategory (as a child category)
+      // Insert subcategory (as a child category) - ignore if already exists
       db.runSync(
-        "INSERT INTO categories (id, name, parentId, createdAt, updatedAt, version) VALUES (?, ?, ?, ?, ?, ?)",
+        "INSERT OR IGNORE INTO categories (id, name, parentId, createdAt, updatedAt, version) VALUES (?, ?, ?, ?, ?, ?)",
         [subId, sub.name, parentId, new Date().toISOString(), new Date().toISOString(), 1]
       );
 
       for (const product of sub.products) {
-        // Generate UUID for product
-        const productId = generateUUID();
+        // Generate deterministic UUID based on product data for consistent sync
+        const productKey = `${category.name}|${sub.name}|${product.name}|${product.sizeLabel || 'default'}`;
+        const productId = generateDeterministicUUID(productKey);
         
         // Insert product with proper schema fields
         db.runSync(

@@ -6,24 +6,51 @@ import { useCanManageSettings, useUser } from '@/contexts/UserContext';
 import { useSync } from '@/hooks/useSync';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import React, { useCallback, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Alert, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 export default function SyncScreen() {
-  const { syncState, isInitialized, syncNow } = useSync();
+  const { syncState, isInitialized, syncNow, refreshSyncState } = useSync();
   const { showSettings } = useSettings();
-  const { currentUser } = useUser();
+  useUser();
   const canManageSettings = useCanManageSettings();
   const [isManualSyncing, setIsManualSyncing] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const router = useRouter();
 
-  // Redirect if user doesn't have permission
+  // Auto-refresh sync state every 2 seconds to keep it current
+  useEffect(() => {
+    if (!isInitialized || !refreshSyncState) return;
+    
+    const interval = setInterval(() => {
+      refreshSyncState();
+    }, 2000); // Refresh every 2 seconds
+    
+    return () => clearInterval(interval);
+  }, [isInitialized, refreshSyncState]);
+
+  // Refresh sync state when screen comes into focus
   useFocusEffect(
     useCallback(() => {
       if (!canManageSettings) {
         router.replace('/(tabs)/products');
+        return;
       }
-    }, [canManageSettings, router])
+      
+      // Refresh sync state immediately when screen comes into focus
+      if (isInitialized && refreshSyncState) {
+        refreshSyncState();
+      }
+      
+      // More frequent refresh when screen is focused (every 1 second)
+      const interval = setInterval(() => {
+        if (refreshSyncState) {
+          refreshSyncState();
+        }
+      }, 1000); // Refresh every 1 second when screen is focused
+      
+      return () => clearInterval(interval);
+    }, [canManageSettings, router, isInitialized, refreshSyncState])
   );
 
   const handleSyncPress = async () => {
@@ -34,22 +61,34 @@ export default function SyncScreen() {
       const result = await syncNow();
       
       // Create detailed sync report
-      let message = `Sync completed successfully!\n\n`;
+      let message = `Sync completed!\n\n`;
       message += `📤 Uploaded: ${result.syncedRecords} records\n`;
       message += `⚠️ Conflicts: ${result.conflicts.length}\n`;
       message += `❌ Errors: ${result.errors.length}\n`;
       
       if (result.errors.length > 0) {
-        message += `\nErrors:\n`;
-        result.errors.slice(0, 3).forEach(error => {
-          message += `• ${error.entity}: ${error.error}\n`;
+        message += `\nDetailed Errors:\n`;
+        result.errors.forEach((error, index) => {
+          const errorMessage = error.error || 'Unknown error';
+          const entityInfo = error.id ? `${error.entity}:${error.id}` : error.entity;
+          message += `${index + 1}. ${entityInfo}\n   ${errorMessage}\n\n`;
         });
-        if (result.errors.length > 3) {
-          message += `• ... and ${result.errors.length - 3} more\n`;
-        }
       }
       
-      Alert.alert('Sync Complete', message, [{ text: 'OK' }]);
+      if (result.conflicts.length > 0) {
+        message += `\nConflicts:\n`;
+        result.conflicts.forEach((conflict, index) => {
+          message += `${index + 1}. ${conflict.entity}:${conflict.id}\n   Type: ${conflict.conflictType}\n\n`;
+        });
+      }
+      
+      const alertTitle = result.errors.length > 0 ? 'Sync Completed with Errors' : 'Sync Complete';
+      Alert.alert(alertTitle, message, [{ text: 'OK' }]);
+      
+      // Refresh sync state after successful sync
+      if (refreshSyncState) {
+        refreshSyncState();
+      }
     } catch (error) {
       Alert.alert(
         'Sync Failed',
@@ -58,6 +97,19 @@ export default function SyncScreen() {
       );
     } finally {
       setIsManualSyncing(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      if (refreshSyncState) {
+        await refreshSyncState();
+      }
+    } catch (error) {
+      console.error('Failed to refresh sync state:', error);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -83,7 +135,7 @@ export default function SyncScreen() {
             Access Denied
           </ThemedText>
           <ThemedText style={styles.noAccessText}>
-            You don't have permission to access sync settings.
+            You don&apos;t have permission to access sync settings.
           </ThemedText>
           <ThemedText style={styles.noAccessSubtext}>
             Contact your manager for access.
@@ -101,9 +153,18 @@ export default function SyncScreen() {
         onPress: showSettings
       }}
     >
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.container} 
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+        }
+        showsVerticalScrollIndicator={false}
+      >
         <SyncStatus
-          syncState={syncState}
+          syncState={{
+            ...syncState,
+            status: isManualSyncing ? 'syncing' : syncState.status
+          }}
           onSyncPress={handleSyncPress}
         />
 

@@ -16,13 +16,13 @@ import { ActivityIndicator, Alert, FlatList, StyleSheet, TouchableOpacity, View 
 export default function SellScreen() {
   const { 
     products, 
-    reload, 
     loadMore, 
     loadingMore, 
     group, 
     setGroup, 
     loading,
-    findAndLoadProduct
+    findAndLoadProduct,
+    updateProductQuantity
   } = useProducts(true); // Enable pagination
   const { showSettings } = useSettings();
   useUser(); // Get user context for permissions
@@ -99,16 +99,27 @@ export default function SellScreen() {
     }
   };
 
-  const handleSell = async (productId: string) => {
+  const handleSell = async (productId: string, quantity: number = 1) => {
     try {
-      // Record the sale locally
-      recordSale(productId, 1);
+      // Record the sale locally and get the generated sale ID
+      const saleId = recordSale(productId, quantity);
+      
+      // Update the local state immediately for smooth UX
+      updateProductQuantity(productId, -quantity);
       
       // Queue sync operation for the sale
       try {
+        // Get product price for sync data
+        const product = products.find(p => p.id === productId);
+        const priceXaf = product?.variants[0]?.priceXaf || 0;
+        const totalXaf = priceXaf * quantity;
+        
         await queueOperation('sale', 'create', {
+          id: saleId,
           productId,
-          quantity: 1,
+          quantity,
+          priceXaf,
+          totalXaf,
           timestamp: new Date().toISOString()
         });
       } catch (syncError) {
@@ -117,10 +128,21 @@ export default function SellScreen() {
         console.warn('Failed to queue sale for sync:', syncError);
       }
       
-      reload(); // Refresh the product list
+      // No need to reload - we've already updated the local state
       // Could add haptic feedback here
-    } catch {
-      Alert.alert('Error', 'Could not record sale. Please try again.');
+    } catch (error) {
+      // Handle specific error cases
+      if (error instanceof Error) {
+        if (error.message === 'Insufficient stock') {
+          Alert.alert('Out of Stock', 'This product is out of stock.');
+        } else if (error.message === 'Product not found') {
+          Alert.alert('Product Not Found', 'This product is no longer available.');
+        } else {
+          Alert.alert('Error', 'Could not record sale. Please try again.');
+        }
+      } else {
+        Alert.alert('Error', 'Could not record sale. Please try again.');
+      }
     }
   };
 
@@ -190,7 +212,7 @@ export default function SellScreen() {
           key={variant.id}
           name={item.name}
           variant={variant}
-          onSell={() => handleSell(variant.id)}
+          onSell={(quantity) => handleSell(variant.id, quantity)}
           highlighted={isHighlighted}
         />
       );

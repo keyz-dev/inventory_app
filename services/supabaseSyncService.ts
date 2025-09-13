@@ -137,6 +137,11 @@ class SupabaseSyncService {
     return [...this.pendingConflicts];
   }
 
+  // Manually refresh sync state (useful for debugging)
+  async refreshSyncState(): Promise<void> {
+    await this.loadSyncState();
+  }
+
   // Subscribe to sync state changes
   subscribe(listener: (state: SyncState) => void): () => void {
     this.syncListeners.push(listener);
@@ -150,31 +155,52 @@ class SupabaseSyncService {
 
   // Manual sync trigger
   async syncNow(): Promise<SyncResult> {
-    console.log('🔄 syncNow() called, current status:', this.syncState.status);
-    
     if (this.syncState.status === 'syncing') {
-      console.log('❌ Sync already in progress, throwing error');
       throw new Error('Sync already in progress');
     }
 
     // Check if we can sync (respects WiFi-only setting)
-    console.log('🔍 Checking if we can sync...');
     const canPerformSync = await this.canSync();
-    console.log('🔍 Can sync result:', canPerformSync);
     
     if (!canPerformSync) {
       const errorMessage = this.config.syncOnWiFiOnly 
         ? 'Sync requires WiFi connection' 
         : 'No internet connection available';
-      console.log('❌ Cannot sync:', errorMessage);
+      console.log('❌ [ONLINE_CHECK] Cannot sync:', errorMessage);
       throw new Error(errorMessage);
     }
 
-    console.log('✅ Setting status to syncing...');
     this.updateState({ status: 'syncing' });
 
     try {
       const result = await this.performSync();
+      
+      // Log detailed error information if there are errors
+      if (result.errors.length > 0) {
+        console.log('❌ [SYNC_ERRORS] Detailed error information:');
+        result.errors.forEach((error, index) => {
+          console.log(`  Error ${index + 1}:`, {
+            id: error.id,
+            entity: error.entity,
+            operation: error.operation,
+            error: error.error,
+            retryable: error.retryable
+          });
+        });
+      }
+      
+      // Log detailed conflict information if there are conflicts
+      if (result.conflicts.length > 0) {
+        console.log('⚠️ [SYNC_CONFLICTS] Detailed conflict information:');
+        result.conflicts.forEach((conflict, index) => {
+          console.log(`  Conflict ${index + 1}:`, {
+            id: conflict.id,
+            entity: conflict.entity,
+            localData: conflict.localData,
+            remoteData: conflict.remoteData
+          });
+        });
+      }
       
       // Update the state
       this.updateState({ 
@@ -185,6 +211,7 @@ class SupabaseSyncService {
       });
       return result;
     } catch (error) {
+      console.error('❌ [SYNC_ERROR] Sync failed:', error);
       this.updateState({ 
         status: 'error', 
         errorMessage: error instanceof Error ? error.message : 'Unknown error'
@@ -210,8 +237,10 @@ class SupabaseSyncService {
     };
 
     await this.saveSyncRecord(record);
+    
+    const newPendingCount = this.syncState.pendingOperations + 1;    
     this.updateState({ 
-      pendingOperations: this.syncState.pendingOperations + 1 
+      pendingOperations: newPendingCount 
     });
 
     // Try to sync immediately if we can sync
@@ -239,14 +268,12 @@ class SupabaseSyncService {
     // Get pending operations
     const pendingOps = await this.getPendingOperations();
     
-    if (pendingOps.length === 0) {
-      return result;
+    if (pendingOps.length > 0) {
+      // Upload local changes
+      const uploadResult = await this.uploadChanges(pendingOps);
+      result.syncedRecords += uploadResult.synced;
+      result.errors.push(...uploadResult.errors);
     }
-
-    // Upload local changes
-    const uploadResult = await this.uploadChanges(pendingOps);
-    result.syncedRecords += uploadResult.synced;
-    result.errors.push(...uploadResult.errors);
 
     // Download remote changes
     const downloadResult = await this.downloadChanges();
@@ -256,6 +283,9 @@ class SupabaseSyncService {
 
     // Update last sync time
     await this.updateLastSyncTime(result.timestamp);
+
+    // Clean up old synced operations to prevent queue from growing indefinitely
+    await this.cleanupOldSyncedOperations();
 
     return result;
   }
@@ -274,14 +304,20 @@ class SupabaseSyncService {
         await this.markOperationSynced(operation.id);
         synced++;
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Upload failed';
         errors.push({
           id: operation.id,
           entity: operation.entity,
           operation: operation.operation,
-          error: error instanceof Error ? error.message : 'Upload failed',
+          error: errorMessage,
           retryable: true
         });
       }
+    }
+
+    // Update pending operations count after successful uploads
+    if (synced > 0) {
+      await this.refreshPendingOperationsCount();
     }
 
     return { synced, errors };
@@ -375,10 +411,24 @@ class SupabaseSyncService {
 
   // Process sale operations
   private async processSaleOperation(operation: SyncOperation, data: any): Promise<void> {
+    // Validate required fields
+    if (!data.id) {
+      throw new Error('Sale ID is required');
+    }
+    if (!data.productId) {
+      throw new Error('Product ID is required');
+    }
+    if (data.priceXaf === undefined || data.priceXaf === null) {
+      throw new Error('Price is required for sale');
+    }
+    if (data.totalXaf === undefined || data.totalXaf === null) {
+      throw new Error('Total amount is required for sale');
+    }
+
     const saleData = {
       id: data.id,
       product_id: data.productId,
-      quantity: data.quantity,
+      quantity: data.quantity || 1,
       price_xaf: data.priceXaf,
       total_xaf: data.totalXaf,
       created_at: data.createdAt || new Date().toISOString(),
@@ -393,14 +443,18 @@ class SupabaseSyncService {
         const { error } = await supabase
           .from('sales')
           .upsert(saleData);
-        if (error) throw error;
+        if (error) {
+          throw new Error(`Sale upsert failed: ${error.message}`);
+        }
         break;
       case 'delete':
         const { error: deleteError } = await supabase
           .from('sales')
           .update({ deleted_at: new Date().toISOString() })
           .eq('id', data.id);
-        if (deleteError) throw deleteError;
+        if (deleteError) {
+          throw new Error(`Sale delete failed: ${deleteError.message}`);
+        }
         break;
     }
   }
@@ -508,18 +562,23 @@ class SupabaseSyncService {
             version: product.version
           });
           if (conflict) {
+            console.log(`⚠️ [DOWNLOAD] Conflict detected for product:`, product.id);
             conflicts.push(conflict);
           } else {
             synced++;
           }
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Apply failed';
+          console.log(`❌ [DOWNLOAD] Failed to apply product:`, product.id, errorMessage);
+          console.log(`❌ [DOWNLOAD] Product data:`, JSON.stringify(product, null, 2));
+          
           errors.push({
             id: product.id,
             entity: 'product',
             operation: 'update',
-            error: error instanceof Error ? error.message : 'Apply failed',
+            error: errorMessage,
             retryable: false
-          });
+          }); 
         }
       }
 
@@ -542,16 +601,21 @@ class SupabaseSyncService {
             version: category.version
           });
           if (conflict) {
+            console.log(`⚠️ [DOWNLOAD] Conflict detected for category:`, category.id);
             conflicts.push(conflict);
           } else {
             synced++;
           }
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Apply failed';
+          console.log(`❌ [DOWNLOAD] Failed to apply category:`, category.id, errorMessage);
+          console.log(`❌ [DOWNLOAD] Category data:`, JSON.stringify(category, null, 2));
+          
           errors.push({
             id: category.id,
             entity: 'category',
             operation: 'update',
-            error: error instanceof Error ? error.message : 'Apply failed',
+            error: errorMessage,
             retryable: false
           });
         }
@@ -578,16 +642,21 @@ class SupabaseSyncService {
             version: sale.version
           });
           if (conflict) {
+            console.log(`⚠️ [DOWNLOAD] Conflict detected for sale:`, sale.id);
             conflicts.push(conflict);
           } else {
             synced++;
           }
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Apply failed';
+          console.log(`❌ [DOWNLOAD] Failed to apply sale:`, sale.id, errorMessage);
+          console.log(`❌ [DOWNLOAD] Sale data:`, JSON.stringify(sale, null, 2));
+          
           errors.push({
             id: sale.id,
             entity: 'sale',
             operation: 'update',
-            error: error instanceof Error ? error.message : 'Apply failed',
+            error: errorMessage,
             retryable: false
           });
         }
@@ -613,26 +682,35 @@ class SupabaseSyncService {
             version: adjustment.version
           });
           if (conflict) {
+            console.log(`⚠️ [DOWNLOAD] Conflict detected for stock adjustment:`, adjustment.id);
             conflicts.push(conflict);
           } else {
             synced++;
           }
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Apply failed';
+          console.log(`❌ [DOWNLOAD] Failed to apply stock adjustment:`, adjustment.id, errorMessage);
+          console.log(`❌ [DOWNLOAD] Stock adjustment data:`, JSON.stringify(adjustment, null, 2));
+          
           errors.push({
             id: adjustment.id,
             entity: 'stock_adjustment',
             operation: 'update',
-            error: error instanceof Error ? error.message : 'Apply failed',
+            error: errorMessage,
             retryable: false
           });
         }
       }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Download failed';
+      console.log(`❌ [DOWNLOAD] Download process failed:`, errorMessage);
+      console.log(`❌ [DOWNLOAD] Full error:`, error);
+      
       errors.push({
         id: 'download',
         entity: 'product',
         operation: 'update',
-        error: error instanceof Error ? error.message : 'Download failed',
+        error: errorMessage,
         retryable: true
       });
     }
@@ -667,7 +745,6 @@ class SupabaseSyncService {
       
       return null; // No conflicts
     } catch (error) {
-      console.error(`Failed to apply remote entity ${entity}:${id}:`, error);
       throw error;
     }
   }
@@ -679,7 +756,6 @@ class SupabaseSyncService {
       const result = query<any>(`SELECT * FROM ${tableName} WHERE id = ? AND deletedAt IS NULL`, [id]);
       return result.length > 0 ? result[0] : null;
     } catch (error) {
-      console.error(`Failed to get local entity ${entity}:${id}:`, error);
       return null;
     }
   }
@@ -689,6 +765,7 @@ class SupabaseSyncService {
     const localVersion = localEntity.version || 1;
     const remoteVersion = remoteEntity.version || 1;
     
+    // Only detect conflicts if there are actual concurrent edits
     // Check if both entities were modified since last sync
     if (localVersion > remoteVersion && localEntity.updatedAt > (this.syncState.lastSyncAt || '1970-01-01T00:00:00Z')) {
       return {
@@ -700,18 +777,61 @@ class SupabaseSyncService {
       };
     }
     
-    // Check for data mismatches
-    if (localVersion === remoteVersion && localEntity.updatedAt !== remoteEntity.updatedAt) {
-      return {
-        id: remoteEntity.id,
-        entity: remoteEntity.entity,
-        localData: localEntity,
-        remoteData: remoteEntity.data,
-        conflictType: 'data_mismatch'
-      };
+    // For sales, be more lenient with timestamp differences
+    // Only detect data mismatch if there are significant differences in critical fields
+    if (remoteEntity.entity === 'sale') {
+      // For sales, only conflict if the core data is different
+      const localPrice = localEntity.priceXaf || localEntity.price_xaf;
+      const remotePrice = remoteEntity.data.priceXaf || remoteEntity.data.price_xaf;
+      const localQuantity = localEntity.quantity;
+      const remoteQuantity = remoteEntity.data.quantity;
+      
+      if (localPrice !== remotePrice || localQuantity !== remoteQuantity) {
+        return {
+          id: remoteEntity.id,
+          entity: remoteEntity.entity,
+          localData: localEntity,
+          remoteData: remoteEntity.data,
+          conflictType: 'data_mismatch'
+        };
+      }
+    } else {
+      // For other entities, check for data mismatches more carefully
+      // Only conflict if versions are the same but critical data differs
+      if (localVersion === remoteVersion) {
+        // Check if there are meaningful differences in the data
+        const hasSignificantDifference = this.hasSignificantDataDifference(localEntity, remoteEntity.data, remoteEntity.entity);
+        if (hasSignificantDifference) {
+          return {
+            id: remoteEntity.id,
+            entity: remoteEntity.entity,
+            localData: localEntity,
+            remoteData: remoteEntity.data,
+            conflictType: 'data_mismatch'
+          };
+        }
+      }
     }
     
     return null; // No conflict
+  }
+
+  // Check if there are significant differences in entity data
+  private hasSignificantDataDifference(localData: any, remoteData: any, entity: SyncEntity): boolean {
+    switch (entity) {
+      case 'product':
+        return localData.name !== remoteData.name || 
+               localData.priceXaf !== remoteData.priceXaf ||
+               localData.quantity !== remoteData.quantity;
+      case 'category':
+        return localData.name !== remoteData.name;
+      case 'stock_adjustment':
+        return localData.quantityChange !== remoteData.quantityChange ||
+               localData.reason !== remoteData.reason;
+      default:
+        // For unknown entities, be conservative and don't detect conflicts
+        return false;
+    }
   }
 
   // Resolve conflicts based on configured strategy
@@ -724,7 +844,6 @@ class SupabaseSyncService {
       case 'manual':
         // For manual resolution, we'll keep the local version and mark for manual review
         // In a real app, you'd show a UI for the user to choose
-        console.warn(`Manual conflict resolution needed for ${remoteEntity.entity}:${remoteEntity.id}`);
         return localEntity;
       default:
         return remoteEntity.data;
@@ -736,11 +855,12 @@ class SupabaseSyncService {
     const tableName = this.getTableName(entity);
     const fields = this.getEntityFields(entity);
     
-    const updateFields = fields.map(field => `${field} = ?`).join(', ');
-    const values = fields.map(field => data[field] || null);
-    values.push(updatedAt, version, id);
+    const fieldNames = ['id', ...fields, 'createdAt', 'updatedAt', 'version'].join(', ');
+    const placeholders = fields.map(() => '?').concat(['?', '?', '?', '?']).join(', ');
+    const values = [id, ...fields.map(field => data[field] || null)];
+    values.push(updatedAt, updatedAt, version);
     
-    query(`UPDATE ${tableName} SET ${updateFields}, updatedAt = ?, version = ? WHERE id = ?`, values);
+    query(`INSERT OR REPLACE INTO ${tableName} (${fieldNames}) VALUES (${placeholders})`, values);
   }
 
   // Insert new local entity
@@ -748,12 +868,12 @@ class SupabaseSyncService {
     const tableName = this.getTableName(entity);
     const fields = this.getEntityFields(entity);
     
-    const fieldNames = [...fields, 'createdAt', 'updatedAt', 'version'].join(', ');
-    const placeholders = fields.map(() => '?').concat(['?', '?', '?']).join(', ');
-    const values = fields.map(field => data[field] || null);
+    const fieldNames = ['id', ...fields, 'createdAt', 'updatedAt', 'version'].join(', ');
+    const placeholders = fields.map(() => '?').concat(['?', '?', '?', '?']).join(', ');
+    const values = [data.id, ...fields.map(field => data[field] || null)];
     values.push(updatedAt, updatedAt, version);
     
-    query(`INSERT INTO ${tableName} (${fieldNames}) VALUES (${placeholders})`, values);
+    query(`INSERT OR REPLACE INTO ${tableName} (${fieldNames}) VALUES (${placeholders})`, values);
   }
 
   // Get table name for entity
@@ -821,6 +941,39 @@ class SupabaseSyncService {
     );
   }
 
+  private async refreshPendingOperationsCount(): Promise<void> {
+    try {
+      const { query } = await import('@/lib/db');
+      const pendingCountData = query<any>(
+        `SELECT COUNT(*) as count FROM sync_queue WHERE synced = 0`
+      )[0];
+      
+      this.updateState({
+        pendingOperations: pendingCountData?.count || 0
+      });
+    } catch (error) {
+    }
+  }
+
+  private async cleanupOldSyncedOperations(): Promise<void> {
+    try {
+      const { execute } = await import('@/lib/db');
+      // Keep only the last 100 synced operations for debugging purposes
+      // Delete older synced operations
+      execute(`
+        DELETE FROM sync_queue 
+        WHERE synced = 1 
+        AND id NOT IN (
+          SELECT id FROM sync_queue 
+          WHERE synced = 1 
+          ORDER BY timestamp DESC 
+          LIMIT 100
+        )
+      `);
+    } catch (error) {
+    }
+  }
+
   // Utility methods
   private generateDeviceId(): string {
     return `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -838,31 +991,27 @@ class SupabaseSyncService {
       // Get pending operations count from local sync_queue
       const pendingCountData = query<any>(
         `SELECT COUNT(*) as count FROM sync_queue WHERE synced = 0`
-      )[0];
-
-      console.log('Loading sync state:', {
-        lastSyncAt: lastSyncData?.value,
-        pendingOperations: pendingCountData?.count || 0
-      });
+      )[0]; 
 
       this.syncState = {
         ...this.syncState,
         lastSyncAt: lastSyncData?.value,
         pendingOperations: pendingCountData?.count || 0
       };
+      
+      // Notify listeners about the state change
+      this.syncListeners.forEach(listener => listener(this.syncState));
     } catch (error) {
       console.error('Failed to load sync state:', error);
     }
   }
 
   private async updateLastSyncTime(timestamp: string): Promise<void> {
-    console.log('Updating last sync time:', timestamp);
     const { execute } = await import('@/lib/db');
     execute(
       `INSERT OR REPLACE INTO meta (key, value) VALUES ('lastSyncedAt', ?)`,
       [timestamp]
     );
-    console.log('Last sync time updated successfully');
   }
 
   private async setupNetworkListener(): Promise<void> {
@@ -891,17 +1040,15 @@ class SupabaseSyncService {
 
   private async checkNetworkState(): Promise<boolean> {
     try {
-      console.log('🔍 Checking network state by pinging Supabase...');
       // Simple network check by pinging Supabase
       const { error } = await supabase
         .from('meta')
         .select('key')
         .limit(1);
-      
-      console.log('🔍 Supabase ping result:', error ? 'Error: ' + error.message : 'Success');
-      return !error;
+  
+      const isOnline = !error;
+      return isOnline;
     } catch (error) {
-      console.log('❌ Network check failed with exception:', error);
       return false;
     }
   }
@@ -914,25 +1061,17 @@ class SupabaseSyncService {
   }
 
   private async canSync(): Promise<boolean> {
-    console.log('🔍 canSync() called');
     const isOnline = await this.checkNetworkState();
-    console.log('🔍 Network state check result:', isOnline);
     
     if (!isOnline) {
-      console.log('❌ Not online, cannot sync');
       return false;
     }
 
     // If WiFi-only is enabled, check if we're on WiFi
     if (this.config.syncOnWiFiOnly) {
-      console.log('🔍 WiFi-only enabled, checking WiFi connection');
       const isWiFi = await this.isWiFiConnection();
-      console.log('🔍 WiFi connection result:', isWiFi);
       return isWiFi;
     }
-
-    // If WiFi-only is disabled, allow sync on any connection (WiFi + mobile data)
-    console.log('✅ WiFi-only disabled, allowing sync on any connection');
     return true;
   }
 
@@ -942,6 +1081,11 @@ class SupabaseSyncService {
       const nextSyncAt = new Date(Date.now() + this.config.syncInterval * 60 * 1000);
       this.updateState({ nextSyncAt: nextSyncAt.toISOString() });
       
+      // Trigger immediate sync for new users
+      setTimeout(() => {
+        this.performAutoSync();
+      }, 2000); // Wait 2 seconds after initialization
+      
       setInterval(() => {
         this.performAutoSync();
       }, this.config.syncInterval * 60 * 1000);
@@ -949,23 +1093,25 @@ class SupabaseSyncService {
   }
 
   private async performAutoSync(): Promise<void> {
+    
     // Only auto-sync if:
     // 1. We can sync (online + WiFi check if enabled)
     // 2. Not currently syncing
     // 3. Have pending operations or it's been a while since last sync
     const canPerformSync = await this.canSync();
+    const shouldForceSync = this.shouldForceSync();
     const shouldSync = canPerformSync && 
                       this.syncState.status === 'idle' && 
-                      (this.syncState.pendingOperations > 0 || this.shouldForceSync());
+                      (this.syncState.pendingOperations > 0 || shouldForceSync);
+
 
     if (shouldSync) {
       try {
         await this.syncNow();
       } catch (error) {
-        console.warn('Auto-sync failed:', error);
         // Don't throw - this is background sync
       }
-    }
+    } 
 
     // Update next sync time
     const nextSyncAt = new Date(Date.now() + this.config.syncInterval * 60 * 1000);
@@ -973,14 +1119,18 @@ class SupabaseSyncService {
   }
 
   private shouldForceSync(): boolean {
-    if (!this.syncState.lastSyncAt) return true;
+    if (!this.syncState.lastSyncAt) {
+      return true;
+    }
     
     const lastSync = new Date(this.syncState.lastSyncAt);
     const now = new Date();
     const hoursSinceLastSync = (now.getTime() - lastSync.getTime()) / (1000 * 60 * 60);
     
     // Force sync if it's been more than 2x the sync interval
-    return hoursSinceLastSync > (this.config.syncInterval * 2 / 60);
+    const shouldForce = hoursSinceLastSync > (this.config.syncInterval * 2 / 60);
+    
+    return shouldForce;
   }
 
   private restartAutoSync(): void {
@@ -998,12 +1148,11 @@ class SupabaseSyncService {
   }
 
   private updateState(updates: Partial<SyncState>): void {
-    console.log('🔄 updateState() called with:', updates);
-    console.log('🔄 Previous state:', this.syncState);
-    this.syncState = { ...this.syncState, ...updates };
-    console.log('🔄 New state:', this.syncState);
+    this.syncState = { ...this.syncState, ...updates }
+    
     this.syncListeners.forEach(listener => listener(this.syncState));
   }
+
 }
 
 export default SupabaseSyncService;

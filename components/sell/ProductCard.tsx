@@ -2,19 +2,59 @@ import { ThemedText } from '@/components/ThemedText';
 import { formatXAF } from '@/constants/Currency';
 import { ProductVariant } from '@/types/domain';
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
 type Props = {
   name: string;
   variant: ProductVariant;
-  onSell: () => void;
+  onSell: (quantity: number) => void;
   highlighted?: boolean;
 };
 
 export function ProductCard({ name, variant, onSell, highlighted = false }: Props) {
+  const [sellQuantity, setSellQuantity] = useState(1);
+  const [inputValue, setInputValue] = useState('1');
   const isLowStock = variant.quantity <= 3;
   const isOutOfStock = variant.quantity === 0;
+  
+  // Reset quantity when variant changes
+  useEffect(() => {
+    setSellQuantity(1);
+    setInputValue('1');
+  }, [variant.id]);
+  
+  const handleQuantityChange = useCallback((value: string) => {
+    setInputValue(value);
+    const num = parseInt(value) || 1;
+    const clampedQuantity = Math.max(1, Math.min(num, variant.quantity));
+    setSellQuantity(clampedQuantity);
+  }, [variant.quantity]);
+
+  const incrementQuantity = useCallback(() => {
+    if (sellQuantity < variant.quantity) {
+      const newQuantity = sellQuantity + 1;
+      setSellQuantity(newQuantity);
+      setInputValue(newQuantity.toString());
+    }
+  }, [sellQuantity, variant.quantity]);
+
+  const decrementQuantity = useCallback(() => {
+    if (sellQuantity > 1) {
+      const newQuantity = sellQuantity - 1;
+      setSellQuantity(newQuantity);
+      setInputValue(newQuantity.toString());
+    }
+  }, [sellQuantity]);
+
+  const handleSell = useCallback(() => {
+    onSell(sellQuantity);
+    // Reset quantity to 1 after successful sale (if still in stock)
+    if (variant.quantity > sellQuantity) {
+      setSellQuantity(1);
+      setInputValue('1');
+    }
+  }, [onSell, sellQuantity, variant.quantity]);
   
   return (
     <View style={[
@@ -29,6 +69,50 @@ export function ProductCard({ name, variant, onSell, highlighted = false }: Prop
             <ThemedText style={styles.size}>{variant.sizeLabel}</ThemedText>
           )}
           <ThemedText style={styles.price}>{formatXAF(variant.priceXaf)}</ThemedText>
+          
+          {!isOutOfStock && (
+            <View style={styles.quantitySection}>
+              <View style={styles.quantityControls}>
+                <TouchableOpacity
+                  style={[styles.quantityButton, sellQuantity <= 1 && styles.quantityButtonDisabled]}
+                  onPress={decrementQuantity}
+                  disabled={sellQuantity <= 1}
+                >
+                  <Ionicons 
+                    name="remove" 
+                    size={18} 
+                    color={sellQuantity <= 1 ? '#9ca3af' : '#374151'} 
+                  />
+                </TouchableOpacity>
+                
+                <View style={styles.quantityInputContainer}>
+                  <TextInput
+                    style={styles.quantityInput}
+                    value={inputValue}
+                    onChangeText={handleQuantityChange}
+                    keyboardType="numeric"
+                    selectTextOnFocus
+                    onBlur={() => {
+                      // Ensure input shows the actual sell quantity on blur
+                      setInputValue(sellQuantity.toString());
+                    }}
+                  />
+                </View>
+                
+                <TouchableOpacity
+                  style={[styles.quantityButton, sellQuantity >= variant.quantity && styles.quantityButtonDisabled]}
+                  onPress={incrementQuantity}
+                  disabled={sellQuantity >= variant.quantity}
+                >
+                  <Ionicons 
+                    name="add" 
+                    size={18} 
+                    color={sellQuantity >= variant.quantity ? '#9ca3af' : '#374151'} 
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
         </View>
         
         <View style={styles.rightSection}>
@@ -47,11 +131,11 @@ export function ProductCard({ name, variant, onSell, highlighted = false }: Prop
               styles.sellButton,
               isOutOfStock && styles.sellButtonDisabled
             ]}
-            onPress={onSell}
+            onPress={handleSell}
             disabled={isOutOfStock}
           >
             <Ionicons 
-              name="remove" 
+              name="checkmark" 
               size={20} 
               color={isOutOfStock ? '#9ca3af' : 'white'} 
             />
@@ -115,6 +199,52 @@ const styles = StyleSheet.create({
   rightSection: {
     alignItems: 'flex-end',
     gap: 8,
+  },
+  quantitySection: {
+    marginTop: 8,
+    alignItems: 'flex-start',
+  },
+  quantityControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+  },
+  quantityButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  quantityButtonDisabled: {
+    backgroundColor: '#f3f4f6',
+    borderColor: '#e5e7eb',
+  },
+  quantityInputContainer: {
+    width: 40,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 4,
+  },
+  quantityInput: {
+    width: '100%',
+    height: '100%',
+    textAlign: 'center',
+    fontSize: 16,
+    fontFamily: 'Poppins_600SemiBold',
+    color: '#1f2937',
+    backgroundColor: 'transparent',
+    padding: 0,
+    margin: 0,
   },
   stockContainer: {
     alignItems: 'flex-end',

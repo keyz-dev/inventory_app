@@ -1,7 +1,7 @@
 import { execute, query } from '@/lib/db';
 import { UUID } from '@/types/domain';
 
-export function recordSale(productId: UUID, quantity: number = 1): void {
+export function recordSale(productId: UUID, quantity: number = 1): string {
   // Get current stock
   const current = query<{ quantity: number }>(
     `SELECT quantity FROM products WHERE id = ?`,
@@ -41,4 +41,6 @@ export function recordSale(productId: UUID, quantity: number = 1): void {
      VALUES (?, ?, ?, ?, ?, datetime('now'), datetime('now'), NULL, 1)`,
     [saleId, productId, quantity, product.priceXaf, totalXaf]
   );
+  
+  return saleId;
 }

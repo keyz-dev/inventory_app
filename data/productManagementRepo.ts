@@ -53,7 +53,9 @@ export function createProduct(data: CreateProductData): Product {
     checkForDuplicateProduct(data.name, data.categoryId, variant.sizeLabel || null);
   }
 
-  const productId = `prod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  // Generate deterministic ID based on product data for consistent sync
+  const productKey = `${data.name}|${data.categoryId}|${data.variants.map(v => v.sizeLabel || 'default').join('|')}`;
+  const productId = `prod_${Date.now()}_${productKey.replace(/[^a-zA-Z0-9]/g, '').substring(0, 9)}`;
   
   // If only one variant with no size label, create as single product
   if (data.variants.length === 1 && !data.variants[0].sizeLabel) {
@@ -73,7 +75,8 @@ export function createProduct(data: CreateProductData): Product {
 
     // Create variant products
     for (const variant of data.variants) {
-      const variantId = `prod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const variantKey = `${data.name}|${variant.sizeLabel || 'default'}|${variant.priceXaf}`;
+      const variantId = `prod_${Date.now()}_${variantKey.replace(/[^a-zA-Z0-9]/g, '').substring(0, 9)}`;
       execute(
         `INSERT INTO products (id, name, priceXaf, quantity, sizeLabel, variantOfId, categoryId, createdAt, updatedAt, deletedAt, version) 
          VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), NULL, 1)`,
@@ -116,7 +119,8 @@ export function updateProduct(productId: UUID, data: UpdateProductData): Product
 
     // Create new variants
     for (const variant of data.variants) {
-      const variantId = variant.id || `prod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const variantKey = `${data.name}|${variant.sizeLabel || 'default'}|${variant.priceXaf}`;
+      const variantId = variant.id || `prod_${Date.now()}_${variantKey.replace(/[^a-zA-Z0-9]/g, '').substring(0, 9)}`;
       execute(
         `INSERT INTO products (id, name, priceXaf, quantity, sizeLabel, variantOfId, categoryId, createdAt, updatedAt, deletedAt, version) 
          VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), NULL, 1)`,

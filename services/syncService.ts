@@ -1,16 +1,16 @@
 import { execute, query } from '@/lib/db';
 import {
-    ApiResponse,
-    RemoteEntity,
-    SyncConfig,
-    SyncConflict,
-    SyncEntity,
-    SyncError,
-    SyncOperation,
-    SyncPayload,
-    SyncRecord,
-    SyncResult,
-    SyncState
+  ApiResponse,
+  RemoteEntity,
+  SyncConfig,
+  SyncConflict,
+  SyncEntity,
+  SyncError,
+  SyncOperation,
+  SyncPayload,
+  SyncRecord,
+  SyncResult,
+  SyncState
 } from '@/types/sync';
 
 class SyncService {
@@ -59,6 +59,11 @@ class SyncService {
   // Get pending conflicts (stub implementation)
   getPendingConflicts(): SyncConflict[] {
     return [];
+  }
+
+  // Manually refresh sync state (stub implementation)
+  async refreshSyncState(): Promise<void> {
+    await this.loadSyncState();
   }
 
   // Subscribe to sync state changes

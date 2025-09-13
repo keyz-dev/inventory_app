@@ -57,8 +57,8 @@ export const ProductList = forwardRef<FlatList, Props>(function ProductList({
           )}
         </View>
       </View>
-      {item.variants.map((v) => (
-        <View key={v.id} style={styles.variantRow}>
+      {item.variants.map((v, index) => (
+        <View key={`${item.id}-${v.id}-${index}`} style={styles.variantRow}>
           <ThemedText style={styles.variantText}>
             {v.sizeLabel ? `${v.sizeLabel}` : 'Default'}
           </ThemedText>

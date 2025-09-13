@@ -23,9 +23,8 @@ export function useSync(config?: Partial<SyncConfig>) {
         try {
           const supabaseConfig = { ...getSupabaseSyncConfig(), ...config };
           syncServiceInstance = new SupabaseSyncService(supabaseConfig);
-          console.log('✅ Using Supabase sync service');
-        } catch (supabaseError) {
-          console.warn('⚠️ Supabase not configured, falling back to custom sync service');
+        } catch {
+          console.warn('⚠️ [SYNC] Supabase not configured, falling back to custom sync service');
           const syncConfig = { ...getSyncConfig(), ...config };
           syncServiceInstance = new SyncService(syncConfig);
         }
@@ -39,7 +38,7 @@ export function useSync(config?: Partial<SyncConfig>) {
 
         return unsubscribe;
       } catch (error) {
-        console.error('Failed to initialize sync service:', error);
+        console.error('❌ [SYNC] Failed to initialize sync service:', error);
         setSyncState(prev => ({
           ...prev,
           status: 'error',
@@ -53,7 +52,7 @@ export function useSync(config?: Partial<SyncConfig>) {
     return () => {
       cleanup.then(unsubscribe => unsubscribe?.());
     };
-  }, []);
+  }, [config]);
 
   // Manual sync function
   const syncNow = useCallback(async (): Promise<SyncResult> => {
@@ -115,6 +114,14 @@ export function useSync(config?: Partial<SyncConfig>) {
     return syncServiceInstance.getPendingConflicts();
   }, []);
 
+  // Refresh sync state
+  const refreshSyncState = useCallback(async () => {
+    if (!syncServiceInstance) {
+      return;
+    }
+    return syncServiceInstance.refreshSyncState();
+  }, []);
+
   return {
     syncState,
     isInitialized,
@@ -124,6 +131,7 @@ export function useSync(config?: Partial<SyncConfig>) {
     updateConfig,
     getConfig,
     resolveConflict,
-    getPendingConflicts
+    getPendingConflicts,
+    refreshSyncState
   };
 }

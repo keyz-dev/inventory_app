@@ -34,10 +34,7 @@ export async function runMigrations(): Promise<void> {
     const current = getSchemaVersion(db);
     const pending = migrations.filter(m => m.id > current).sort((a, b) => a.id - b.id);
 
-    console.log(`Running ${pending.length} pending migrations (current version: ${current})`);
-
     for (const m of pending) {
-      console.log(`Running migration ${m.id}: ${m.name}`);
       db.execSync('BEGIN');
       try {
         // Run the SQL migration
@@ -45,13 +42,11 @@ export async function runMigrations(): Promise<void> {
         
         // Run the seed function if it exists
         if (m.seedFunction) {
-          console.log(`Running seed function for migration ${m.id}`);
           await m.seedFunction();
         }
         
         db.execSync(`INSERT OR REPLACE INTO meta(key, value) VALUES ('schema_version', '${m.id}');`);
         db.execSync('COMMIT');
-        console.log(`Migration ${m.id} completed successfully`);
       } catch (e) {
         db.execSync('ROLLBACK');
         console.error(`Migration ${m.id} failed:`, e);
@@ -69,7 +64,6 @@ export async function runMigrations(): Promise<void> {
       }
     }
     
-    console.log('All migrations completed');
   } catch (error) {
     console.error('Migration system failed:', error);
     // Don't throw - let the app continue

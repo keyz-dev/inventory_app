@@ -158,6 +158,7 @@ export function ProductForm({ visible, product, onClose, onSave }: Props) {
               <ThemedText style={styles.label}>Category</ThemedText>
               <View style={styles.categoryGrid}>
                 <TouchableOpacity
+                  key="no-category"
                   style={[
                     styles.categoryButton,
                     categoryId === null && styles.categoryButtonActive,
@@ -173,25 +174,27 @@ export function ProductForm({ visible, product, onClose, onSave }: Props) {
                     No Category
                   </ThemedText>
                 </TouchableOpacity>
-                {categories.map((category) => (
-                  <TouchableOpacity
-                    key={category.id}
-                    style={[
-                      styles.categoryButton,
-                      categoryId === category.id && styles.categoryButtonActive,
-                    ]}
-                    onPress={() => setCategoryId(category.id)}
-                  >
-                    <ThemedText
+                {categories
+                  .filter(category => category.id !== null) // Filter out null IDs
+                  .map((category) => (
+                    <TouchableOpacity
+                      key={category.id}
                       style={[
-                        styles.categoryButtonText,
-                        categoryId === category.id && styles.categoryButtonTextActive,
+                        styles.categoryButton,
+                        categoryId === category.id && styles.categoryButtonActive,
                       ]}
+                      onPress={() => setCategoryId(category.id)}
                     >
-                      {category.name}
-                    </ThemedText>
-                  </TouchableOpacity>
-                ))}
+                      <ThemedText
+                        style={[
+                          styles.categoryButtonText,
+                          categoryId === category.id && styles.categoryButtonTextActive,
+                        ]}
+                      >
+                        {category.name}
+                      </ThemedText>
+                    </TouchableOpacity>
+                  ))}
               </View>
             </View>
           </View>

@@ -135,6 +135,29 @@ export function useProducts(usePagination: boolean = false) {
     }
   }, [products]);
 
+  // Function to update a specific product's quantity without full reload
+  const updateProductQuantity = useCallback((productId: string, quantityChange: number) => {
+    setProducts(prevProducts => 
+      prevProducts.map(product => {
+        // Check if this is the product we want to update
+        const updatedVariants = product.variants.map(variant => {
+          if (variant.id === productId) {
+            const newQuantity = Math.max(0, variant.quantity + quantityChange);
+            return { ...variant, quantity: newQuantity };
+          }
+          return variant;
+        });
+        
+        // If any variant was updated, return the updated product
+        if (updatedVariants.some((variant, index) => variant.quantity !== product.variants[index].quantity)) {
+          return { ...product, variants: updatedVariants };
+        }
+        
+        return product;
+      })
+    );
+  }, []);
+
   return { 
     products, 
     loading, 
@@ -147,7 +170,8 @@ export function useProducts(usePagination: boolean = false) {
     setSearch: changeSearch,
     pagination,
     hasMore: pagination.hasMore,
-    findAndLoadProduct
+    findAndLoadProduct,
+    updateProductQuantity
   };
 }
 

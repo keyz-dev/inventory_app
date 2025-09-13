@@ -21,7 +21,6 @@ export function validateSupabaseConfig(): boolean {
     return false;
   }
   
-  console.log('✅ Supabase configuration valid');
   return true;
 }
 
