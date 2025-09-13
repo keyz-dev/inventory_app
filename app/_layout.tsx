@@ -27,9 +27,7 @@ export default function RootLayout() {
   useEffect(() => {
     const initializeDatabase = async () => {
       try {
-        console.log('Starting database initialization...');
         await runMigrations();
-        console.log('Database initialization completed successfully');
         setDatabaseReady(true);
         
         // Hide splash screen after a minimum delay for better UX
